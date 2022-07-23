@@ -1,0 +1,15 @@
+{
+  "name": "@map-forms/core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./core.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mobx": "6.6.1",
+    "typescript": "4.7.4"
+  }
+}
