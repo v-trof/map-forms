@@ -1,8 +1,8 @@
 {
-  "name": "@map-forms/core",
+  "name": "@stateful-forms/core",
   "version": "1.0.0",
   "description": "",
-  "main": "./text.ts",
+  "main": "./core.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
