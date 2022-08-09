@@ -1,0 +1,1 @@
+export const post = <T>(url: string, data: any): Promise<{ ok: true, value: T } | { ok: false, error: { message: string, params: any } }> => { return Promise.resolve() as any }
