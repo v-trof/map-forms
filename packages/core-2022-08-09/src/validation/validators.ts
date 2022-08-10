@@ -1,6 +1,6 @@
 import { Validator, ValidationError } from "./validationTypes";
 
-const error = (message: string, params?: any): ValidationError => {
+export const error = (message: string, params?: any): ValidationError => {
     return {
         message,
         params,

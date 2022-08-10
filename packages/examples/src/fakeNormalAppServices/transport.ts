@@ -1,1 +1,1 @@
-export const post = <T>(url: string, data: any): Promise<{ ok: true, value: T } | { ok: false, error: { message: string, params: any } }> => { return Promise.resolve() as any }
+export const post = <Data, Result = never>(url: string, data: Data): Promise<{ ok: true, value: Result } | { ok: false, errors: { message: string, params: any }[] }> => { return Promise.resolve() as any }

@@ -11,6 +11,7 @@
   "dependencies": {
     "@stateful-forms/core-2022-07-25": "workspace:*",
     "@stateful-forms/core-2022-08-06": "workspace:*",
+    "@stateful-forms/core-2022-08-09": "workspace:*",
     "mobx": "6.6.1",
     "react": "18.2.0",
     "react-dom": "18.2.0"

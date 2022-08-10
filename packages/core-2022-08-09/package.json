@@ -1,8 +1,8 @@
 {
-  "name": "@stateful-forms/core-2022-08-06",
+  "name": "@stateful-forms/core-2022-08-09",
   "version": "1.0.0",
   "description": "",
-  "main": "./core.ts",
+  "main": "./core-2022-08-09.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
