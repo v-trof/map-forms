@@ -1,10 +1,10 @@
 {
-  "name": "@map-forms/repo",
+  "name": "@informal/repo",
   "version": "1.0.0",
   "description": "",
   "main": "",
   "scripts": {
-    "dev": "pnpm --filter=\"@map-forms/examples\" dev"
+    "dev": "pnpm --filter=\"@informal/examples\" dev"
   },
   "author": "https://github.com/v-trof",
   "license": "Apache License 2.0"
