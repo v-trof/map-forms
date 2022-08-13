@@ -1,5 +1,5 @@
 {
-  "name": "@informal/state",
+  "name": "@informal/state-mobx",
   "version": "1.0.0",
   "description": "",
   "main": "./state.ts",

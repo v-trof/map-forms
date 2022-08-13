@@ -31,7 +31,7 @@ export type ExtractValues<Store> = Store extends ValueContainer<infer Value>
 export type AutoSubmit<State> = (state: State) => ValidationResult<ExtractValues<State>>
 
 const isValueContainer = (state: unknown): state is ValueContainer<any> => {
-    if(state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'valueContainer') {
+    if (state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'valueContainer') {
         return true;
     }
 
@@ -39,7 +39,7 @@ const isValueContainer = (state: unknown): state is ValueContainer<any> => {
 }
 
 const isValidationContainer = (state: unknown): state is ValidationContainer => {
-    if(state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'validationContainer') {
+    if (state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'validationContainer') {
         return true;
     }
 
@@ -47,7 +47,7 @@ const isValidationContainer = (state: unknown): state is ValidationContainer => 
 }
 
 const isAutoSubmitSkip = (state: unknown): state is AutoSubmitSkip => {
-    if(state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'autoSubmitSkip') {
+    if (state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'autoSubmitSkip') {
         return true;
     }
 
@@ -55,18 +55,18 @@ const isAutoSubmitSkip = (state: unknown): state is AutoSubmitSkip => {
 }
 
 const tryExtract = (value: unknown): ValidationResult<any> | undefined => {
-    if(isAutoSubmitSkip(value)) {
+    if (isAutoSubmitSkip(value)) {
         return undefined;
     }
 
-    if(isValueContainer(value)) {
+    if (isValueContainer(value)) {
         return value.getValidValue();
     }
 
-    if(isValidationContainer(value)) {
+    if (isValidationContainer(value)) {
         const error = value.getError();
 
-        if(error) {
+        if (error) {
             return {
                 isValid: false,
                 error
@@ -76,36 +76,36 @@ const tryExtract = (value: unknown): ValidationResult<any> | undefined => {
         return undefined
     }
 
-    if(Array.isArray(value)) {
+    if (Array.isArray(value)) {
         const result = [] as any;
-        
-        for(const item of value) {
+
+        for (const item of value) {
             const itemResult = tryExtract(item);
-            if(itemResult && itemResult.isValid === false) {
+            if (itemResult && itemResult.isValid === false) {
                 return itemResult;
             }
 
             result.push(itemResult);
         }
-        
+
         return { isValid: true, value: result }
     }
 
-    if(value && typeof value === 'object') {
-        const result = {} as any; 
+    if (value && typeof value === 'object') {
+        const result = {} as any;
 
-        for(const key in value) {
+        for (const key in value) {
             const itemResult = tryExtract((value as any)[key]);
-            if(itemResult && itemResult.isValid === false) {
+            if (itemResult && itemResult.isValid === false) {
                 return itemResult;
             }
 
-            if(itemResult?.isValid) {
+            if (itemResult?.isValid) {
                 result[key] = itemResult.value;
             }
         }
 
-        if(Object.keys(result.length > 0)) {
+        if (Object.keys(result.length > 0)) {
             return { isValid: true, value: result };
         }
     }
@@ -113,12 +113,12 @@ const tryExtract = (value: unknown): ValidationResult<any> | undefined => {
     return undefined;
 }
 
-export const autoSubmit =<State>(state: State): ValidationResult<ExtractValues<State>> => {    
+export const autoSubmit = <State>(state: State): ValidationResult<ExtractValues<State>> => {
     const result = tryExtract(state);
 
-    if(!result) {
+    if (!result) {
         console.error("No fields in submitted state", state);
-        return { isValid: false, error: { message: "No fields in state"} };
+        return { isValid: false, error: { message: "No fields in state" } };
     }
 
     return result;
