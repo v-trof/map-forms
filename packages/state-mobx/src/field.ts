@@ -1,10 +1,10 @@
 import { computed, makeAutoObservable, observable } from "mobx";
 import { checkContext } from "./check";
-import { informalType, ValueContainer } from "./submit";
+import { submit, submitIgnore, Submittable } from "./submit";
 import { ValidationError, ValidationResult, Validator } from "./validation/validationTypes";
 import { required } from "./validation/validators";
 
-export type FormalField<Value, ValidValue> = ValueContainer<ValidValue> & {
+export type FormalField<Value, ValidValue> = Submittable<ValidValue> & {
     value: Value;
     validationErrors: {
         parsing: ValidationError | undefined;
@@ -15,7 +15,7 @@ export type FormalField<Value, ValidValue> = ValueContainer<ValidValue> & {
     interactionStatus: 'new' | 'active' | 'wasActive';
 }
 
-export type Field<T> = ValueContainer<T> & {
+export type Field<T> = Submittable<T> & {
     value: T | undefined;
     validationErrors: {
         parsing: ValidationError | undefined;
@@ -62,7 +62,7 @@ export const makeFormalField = <Value, ValidValue>(options: MakeFieldOptions<Val
             },
         },
         interactionStatus: 'new',
-        getValidValue: (): ValidationResult<ValidValue> => {
+        [submit]: (): ValidationResult<ValidValue> => {
             const errors = [
                 fieldStore.validationErrors.parsing,
                 fieldStore.validationErrors.backend,
@@ -83,8 +83,7 @@ export const makeFormalField = <Value, ValidValue>(options: MakeFieldOptions<Val
         },
         get isValid() {
             return !Boolean(fieldStore.validationErrors.parsing || fieldStore.validationErrors.backend || fieldStore.validationErrors.runtime)
-        },
-        [informalType]: 'valueContainer',
+        }
     })
 
     return fieldStore;

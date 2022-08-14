@@ -1,27 +1,27 @@
 import { ValidationError, ValidationResult } from "./validation/validationTypes";
 
-export const informalType = Symbol('informalType');
-export type InformalType = typeof informalType;
+export const submitIgnore = Symbol('@informal/submitIgnore');
+export const submit = Symbol('@informal/submit');
+export const getError = Symbol('@informal/getError');
+export type InformalType = typeof submitIgnore;
 
-export type ValueContainer<Value> = {
-    getValidValue: () => ValidationResult<Value>;
-    [informalType]: 'valueContainer';
+export type Submittable<Value> = {
+    [submit]: () => ValidationResult<Value>;
 }
 
 export type ValidationContainer = {
-    getError: () => ValidationError | undefined;
-    [informalType]: 'validationContainer';
+    [getError]: () => ValidationError | undefined;
 }
 
 export type AutoSubmitSkip = {
-    [informalType]: 'autoSubmitSkip';
+    [submitIgnore]: true;
 }
 
 export type RemoveEmptyKeys<T extends object> = { [P in keyof T as T[P] extends undefined ? never : P]: T[P] };
 
 export type RemoveEmptyObject<T extends object> = T extends { [key: string]: undefined } ? undefined : T;
 
-export type ExtractValues<Store> = Store extends ValueContainer<infer Value>
+export type ExtractValues<Store> = Store extends Submittable<infer Value>
     ? Value
     : Store extends ValidationContainer ? undefined
     : Store extends AutoSubmitSkip ? undefined
@@ -30,24 +30,24 @@ export type ExtractValues<Store> = Store extends ValueContainer<infer Value>
 
 export type AutoSubmit<State> = (state: State) => ValidationResult<ExtractValues<State>>
 
-const isValueContainer = (state: unknown): state is ValueContainer<any> => {
-    if (state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'valueContainer') {
+const canBeSubmitted = (state: unknown): state is Submittable<any> => {
+    if (state && typeof state === 'object' && submit in state) {
         return true;
     }
 
     return false;
 }
 
-const isValidationContainer = (state: unknown): state is ValidationContainer => {
-    if (state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'validationContainer') {
+const canBlockSubmit = (state: unknown): state is ValidationContainer => {
+    if (state && typeof state === 'object' && getError in state) {
         return true;
     }
 
     return false;
 }
 
-const isAutoSubmitSkip = (state: unknown): state is AutoSubmitSkip => {
-    if (state && typeof state === 'object' && informalType in state && (state as any)[informalType] === 'autoSubmitSkip') {
+const shouldBeSkipped = (state: unknown): state is AutoSubmitSkip => {
+    if (state && typeof state === 'object' && submitIgnore in state) {
         return true;
     }
 
@@ -55,16 +55,16 @@ const isAutoSubmitSkip = (state: unknown): state is AutoSubmitSkip => {
 }
 
 const tryExtract = (value: unknown): ValidationResult<any> | undefined => {
-    if (isAutoSubmitSkip(value)) {
+    if (shouldBeSkipped(value)) {
         return undefined;
     }
 
-    if (isValueContainer(value)) {
-        return value.getValidValue();
+    if (canBeSubmitted(value)) {
+        return value[submit]();
     }
 
-    if (isValidationContainer(value)) {
-        const error = value.getError();
+    if (canBlockSubmit(value)) {
+        const error = value[getError]();
 
         if (error) {
             return {

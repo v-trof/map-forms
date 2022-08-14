@@ -1,6 +1,6 @@
 import { makeAutoObservable, observable } from "mobx";
 import { FormalField } from "./field";
-import { informalType, ValidationContainer } from "./submit";
+import { getError, submitIgnore, ValidationContainer } from "./submit";
 import { ValidationError } from "./validation/validationTypes";
 
 export type InteractableAndValidatable = { interactionStatus: 'new' | 'active' | 'wasActive', isValid: boolean };
@@ -73,10 +73,9 @@ export const check = (run: () => ValidationError | undefined, options?: CheckOpt
 
             return options?.getInteractionStatus(usedFields) ?? defaultGetInteractionStatus(usedFields)
         },
-        getError() {
+        [getError]() {
             return checkStore.validationErrors.backend || checkStore.validationErrors.runtime
-        },
-        [informalType]: 'validationContainer'
+        }
     })
 
     return checkStore;

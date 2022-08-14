@@ -1,4 +1,5 @@
 import { field } from './field';
+import { submit } from './submit';
 import { minLength } from './validation/validators';
 
 describe('field', () => {
@@ -11,19 +12,19 @@ describe('field', () => {
     it('returns a validationResult from getValidValue', () => {
         const title = field<string>(minLength(4));
         
-        expect(title.getValidValue()).toEqual({
+        expect(title[submit]()).toEqual({
             isValid: false, error: { message: "required" }
         });
 
         title.value = 'kek'
 
-        expect(title.getValidValue()).toEqual({
+        expect(title[submit]()).toEqual({
             isValid: false, error: { message: "validation.minLength", params: { min: 4 } }
         });
 
         title.value = 'informal'
 
-        expect(title.getValidValue()).toEqual({
+        expect(title[submit]()).toEqual({
             isValid: true, value: 'informal'
         });
     })
