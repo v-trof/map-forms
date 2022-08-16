@@ -109,3 +109,24 @@ field.optional = <Value>(validation?: Validator<Value>): Field<Value | undefined
 
     return fieldStore;
 }
+
+export type StrictField<T> = Submittable<T> & {
+    value: T;
+    validationErrors: {
+        parsing: ValidationError | undefined;
+        runtime: ValidationError | undefined;
+        backend: ValidationError | undefined;
+    };
+    isValid: boolean;
+    interactionStatus: 'new' | 'active' | 'wasActive';
+}
+
+field.strict = <Value>(initialValue: Value, validation?: Validator<Value>): StrictField<Value> => {
+    const fieldStore = makeFormalField<Value, Value>({
+        required: true,
+        initialValue,
+        validation: validation
+    })
+
+    return fieldStore;
+}

@@ -2,7 +2,7 @@
   "name": "@informal/state-mobx",
   "version": "1.0.0",
   "description": "",
-  "main": "./state.ts",
+  "main": "./stateMobx.ts",
   "scripts": {
     "test": "jest"
   },
