@@ -6,20 +6,20 @@ describe('field', () => {
     it('is required by default', () => {
         const name = field<string>();
 
-        expect(name.validationErrors.runtime).toEqual({ message: 'required' })
+        expect(name.validationErrors.runtime).toEqual({ message: 'error.required' })
     });
     
     it('returns a validationResult from getValidValue', () => {
         const title = field<string>(minLength(4));
         
         expect(title[submit]()).toEqual({
-            isValid: false, error: { message: "required" }
+            isValid: false, error: { message: "error.required" }
         });
 
         title.value = 'kek'
 
         expect(title[submit]()).toEqual({
-            isValid: false, error: { message: "validation.minLength", params: { min: 4 } }
+            isValid: false, error: { message: "error.minLength", params: { min: 4 } }
         });
 
         title.value = 'informal'
@@ -48,6 +48,6 @@ describe('optional field', () => {
 
         description.value = 'cool!';
 
-        expect(description.validationErrors.runtime).toEqual({ message: "validation.minLength", params: { min: 10 } });
+        expect(description.validationErrors.runtime).toEqual({ message: "error.minLength", params: { min: 10 } });
     })
 })

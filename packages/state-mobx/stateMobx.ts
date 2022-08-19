@@ -19,6 +19,7 @@ export {
 
 export * from './src/validation/validators'
 
+export { getErrorAfterInteraction, getHighestPriorityError } from './src/errorPicker/getErrorOnInteractionEnd'
 
 // experimental api
 export { ensureValid, valid } from './src/_experiment/valid'

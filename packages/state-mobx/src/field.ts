@@ -1,6 +1,6 @@
-import { computed, makeAutoObservable, observable } from "mobx";
+import { makeAutoObservable, observable, runInAction } from "mobx";
 import { checkContext } from "./check";
-import { submit, submitIgnore, Submittable } from "./submit";
+import { submit, Submittable } from "./submit";
 import { ValidationError, ValidationResult, Validator } from "./validation/validationTypes";
 import { required } from "./validation/validators";
 
@@ -35,12 +35,13 @@ export type MakeFieldOptions<Value> = {
 export const makeFormalField = <Value, ValidValue>(options: MakeFieldOptions<Value>): FormalField<Value, ValidValue> => {
     let value = observable.box(options.initialValue);
 
-    const fieldStore: FormalField<Value, ValidValue> = makeAutoObservable({
+    const fieldStore: FormalField<Value, ValidValue> = {
         get value() {
             checkContext.onFieldUsed(fieldStore);
             return value.get();
         },
         set value(newValue: Value) {
+            fieldStore.validationErrors.backend = undefined;
             value.set(newValue);
         },
         validationErrors: {
@@ -63,6 +64,11 @@ export const makeFormalField = <Value, ValidValue>(options: MakeFieldOptions<Val
         },
         interactionStatus: 'new',
         [submit]: (): ValidationResult<ValidValue> => {
+            runInAction(() => {
+                fieldStore.interactionStatus = 'wasActive';
+                fieldStore.validationErrors.backend = undefined;
+            });
+
             const errors = [
                 fieldStore.validationErrors.parsing,
                 fieldStore.validationErrors.backend,
@@ -84,9 +90,9 @@ export const makeFormalField = <Value, ValidValue>(options: MakeFieldOptions<Val
         get isValid() {
             return !Boolean(fieldStore.validationErrors.parsing || fieldStore.validationErrors.backend || fieldStore.validationErrors.runtime)
         }
-    })
+    }
 
-    return fieldStore;
+    return makeAutoObservable(fieldStore, { value: false });
 }
 
 export const field = <Value>(validation?: Validator<Value>): Field<Value> => {

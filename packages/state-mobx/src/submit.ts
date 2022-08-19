@@ -78,14 +78,19 @@ const tryExtract = (value: unknown): ValidationResult<any> | undefined => {
 
     if (Array.isArray(value)) {
         const result = [] as any;
+        let badResult: ValidationResult<any> | undefined;
 
         for (const item of value) {
             const itemResult = tryExtract(item);
             if (itemResult && itemResult.isValid === false) {
-                return itemResult;
+                badResult = itemResult;
             }
 
             result.push(itemResult);
+        }
+
+        if(badResult) {
+            return badResult;
         }
 
         return { isValid: true, value: result }
@@ -93,16 +98,21 @@ const tryExtract = (value: unknown): ValidationResult<any> | undefined => {
 
     if (value && typeof value === 'object') {
         const result = {} as any;
+        let badResult: ValidationResult<any> | undefined;
 
         for (const key in value) {
             const itemResult = tryExtract((value as any)[key]);
             if (itemResult && itemResult.isValid === false) {
-                return itemResult;
+                badResult = itemResult;
             }
 
             if (itemResult?.isValid) {
                 result[key] = itemResult.value;
             }
+        }
+
+        if(badResult) {
+            return badResult;
         }
 
         if (Object.keys(result.length > 0)) {

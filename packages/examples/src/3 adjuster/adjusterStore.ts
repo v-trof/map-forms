@@ -1,4 +1,4 @@
-import { autoSubmit, ensureValid, Field, field, modifySubmit, modifyValid, submit, valid, ValidationResult } from '@informal/state-mobx'
+import { autoSubmit, ensureValid, Field, field, minValue, modifySubmit, modifyValid, submit, valid, ValidationResult } from '@informal/state-mobx'
 import { Submittable } from '@informal/state-mobx/src/submit';
 import { makeAutoObservable } from 'mobx';
 
@@ -91,10 +91,11 @@ export const createAdjusterStoreModifyValid = () => {
 }
 
 export const createAdjusterStoreModifySubmit = () => {
-    const store: AdjusterStore = makeAutoObservable({
+    const store: AdjusterStore = {
         type: 'Top%',
-        count: field<number>(),
-        percent: field<number>(),
+        count: field(
+            minValue(1)),
+        percent: field(),
         [submit]: () => {
             if (store.type === 'Top%') {
                 return modifySubmit(store.percent, (percent): AdjusterValue => ({ type: 'Top%', percent }))
@@ -102,7 +103,7 @@ export const createAdjusterStoreModifySubmit = () => {
 
             return modifySubmit(store.count, (count) => ({ type: 'TopN', count }))
         }
-    })
+    };
 
-    return store;
+    return makeAutoObservable(store);
 }

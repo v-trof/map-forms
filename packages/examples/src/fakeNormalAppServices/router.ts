@@ -1,5 +1,7 @@
 export const useRouter = () => {
     return {
-        navigate: (page: string) => 0,
+        navigate: (page: string) => {
+            alert("NAVIGATE TO " + page);
+        },
     }
 }

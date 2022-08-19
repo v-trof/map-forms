@@ -1,6 +1,5 @@
-import { makeAutoObservable, observable } from "mobx";
-import { FormalField } from "./field";
-import { getError, submitIgnore, ValidationContainer } from "./submit";
+import { action, makeAutoObservable, observable } from "mobx";
+import { getError, ValidationContainer } from "./submit";
 import { ValidationError } from "./validation/validationTypes";
 
 export type InteractableAndValidatable = { interactionStatus: 'new' | 'active' | 'wasActive', isValid: boolean };
@@ -45,12 +44,13 @@ const defaultGetInteractionStatus: CheckOptions['getInteractionStatus'] = (field
 
 export const check = (run: () => ValidationError | undefined, options?: CheckOptions): Check => {
     const usedFields = observable.array([] as InteractableAndValidatable[]);
-    const thisCheckContext: CheckContext = { onFieldUsed: (field) => { usedFields.push(field); return 'check' } }
+    const clear = action(() => usedFields.clear());
+    const thisCheckContext: CheckContext = { onFieldUsed: action((field) => { usedFields.push(field); return 'check' }) }
 
-    const checkStore: Check = makeAutoObservable({
+    const checkStore: Check = {
         validationErrors: {
             get runtime() {
-                usedFields.clear();
+                clear();
                 let lastContext = { ...checkContext };
                 Object.assign(checkContext, thisCheckContext);
 
@@ -76,7 +76,7 @@ export const check = (run: () => ValidationError | undefined, options?: CheckOpt
         [getError]() {
             return checkStore.validationErrors.backend || checkStore.validationErrors.runtime
         }
-    })
+    }
 
-    return checkStore;
+    return makeAutoObservable(checkStore);
 }

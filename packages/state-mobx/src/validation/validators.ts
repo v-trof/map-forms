@@ -11,19 +11,25 @@ export const required = <RawValue>(
     value: RawValue | undefined
 ) => {
     if (value === undefined) {
-        return error('required');
+        return error('error.required');
     }
 };
 
 export const minLength = (min: number): Validator<string> => (value) => {
     if (value.length < min) {
-        return error('validation.minLength', { min });
+        return error('error.minLength', { min });
+    }
+};
+
+export const maxLength = (max: number): Validator<string> => (value) => {
+    if (value.length > max) {
+        return error('error.maxLength', { max });
     }
 };
 
 export const minValue = (min: number): Validator<number> => (value) => {
     if (value < min) {
-        return error('validation.min', { min });
+        return error('error.min', { min });
     }
 };
 
