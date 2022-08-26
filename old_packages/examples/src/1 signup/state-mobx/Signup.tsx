@@ -8,7 +8,7 @@ import { useRouter } from "../../fakeNormalAppServices/router";
 import { post, FakeResponse } from "../../fakeNormalAppServices/transport";
 import { useTranslation } from "../../fakeNormalAppServices/useTranslation";
 import { useCheck, useSubmit, useTextField } from "../../ui-hooks/state-mobx/chakraHoksStateMobx";
-import { FormInput } from "../../ui-hooks/state-mobx/Form";
+import { FormTextarea } from "../../ui-hooks/state-mobx/Form";
 
 export type SignupDTO = {
     login: string;
@@ -67,8 +67,8 @@ export const Signup = observer(() => {
             <Box bg="white" p={6} rounded="md">
                 <form onSubmit={handleSubmit}>
                     <VStack spacing={4} align="flex-start">
-                        <FormInput label={t('login')} {...login} />
-                        <FormInput type="password" label={t('password')} {...password} />
+                        <FormTextarea label={t('login')} {...login} />
+                        <FormTextarea type="password" label={t('password')} {...password} />
 
                         {notSame && <Alert status='error'><AlertIcon />{notSame}</Alert>}
                         

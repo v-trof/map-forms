@@ -1,6 +1,6 @@
 import { check, Check } from './src/check'
 import { field, Field } from './src/field'
-import { autoSubmit, submit, submitIgnore, getError } from './src/submit'
+import { autoSubmit, submit, noSubmit, getError } from './src/submit'
 import { ValidationResult, ValidationError } from './src/validation/validationTypes'
 
 export type {
@@ -14,7 +14,7 @@ export {
     check,
     field,
     autoSubmit,
-    submit, submitIgnore, getError
+    submit, noSubmit, getError
 }
 
 export * from './src/validation/validators'

@@ -8,10 +8,10 @@ describe('field', () => {
 
         expect(name.validationErrors.runtime).toEqual({ message: 'error.required' })
     });
-    
+
     it('returns a validationResult from getValidValue', () => {
         const title = field<string>(minLength(4));
-        
+
         expect(title[submit]()).toEqual({
             isValid: false, error: { message: "error.required" }
         });

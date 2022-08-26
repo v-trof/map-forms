@@ -1,9 +1,9 @@
 import { ValidationError, ValidationResult } from "./validation/validationTypes";
 
-export const submitIgnore = Symbol('@informal/submitIgnore');
 export const submit = Symbol('@informal/submit');
 export const getError = Symbol('@informal/getError');
-export type InformalType = typeof submitIgnore;
+export const noSubmit = Symbol('@informal/submitIgnore');
+export type InformalType = typeof noSubmit;
 
 export type Submittable<Value> = {
     [submit]: () => ValidationResult<Value>;
@@ -14,7 +14,7 @@ export type ValidationContainer = {
 }
 
 export type AutoSubmitSkip = {
-    [submitIgnore]: true;
+    [noSubmit]: true;
 }
 
 export type RemoveEmptyKeys<T extends object> = { [P in keyof T as T[P] extends undefined ? never : P]: T[P] };
@@ -47,7 +47,7 @@ const canBlockSubmit = (state: unknown): state is ValidationContainer => {
 }
 
 const shouldBeSkipped = (state: unknown): state is AutoSubmitSkip => {
-    if (state && typeof state === 'object' && submitIgnore in state) {
+    if (state && typeof state === 'object' && noSubmit in state) {
         return true;
     }
 
@@ -89,7 +89,7 @@ const tryExtract = (value: unknown): ValidationResult<any> | undefined => {
             result.push(itemResult);
         }
 
-        if(badResult) {
+        if (badResult) {
             return badResult;
         }
 
@@ -111,7 +111,7 @@ const tryExtract = (value: unknown): ValidationResult<any> | undefined => {
             }
         }
 
-        if(badResult) {
+        if (badResult) {
             return badResult;
         }
 
