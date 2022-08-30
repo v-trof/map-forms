@@ -1,18 +1,19 @@
-import { isRemoved, hasGetValue, NoSubmit, Removable, StoreWithValue, shouldSkip, getValue, hasGetError, getError } from "../protocol/accessAnnotations";
+import { isRemoved, hasGetValue, NoSubmit, Removable, StoreWithValue, shouldSkip, getValue, hasGetError, getError, StoreWithError } from "../protocol/accessAnnotations";
 import { createAccessContext } from "../protocol/accessContext";
 import { error, isError, ValidationError } from "../protocol/error";
 
+// this exact implementation esures the most ts ide hint / error firendly solution
 
-export type RemoveEmptyKeys<T extends object> = { [P in keyof T as T[P] extends undefined ? never : P]: T[P] };
+type Empty = undefined | Record<string, undefined>;
+type DeepExtractValue<Store> = 
+    | Store extends NoSubmit ? undefined
+    : Store extends Removable ? DeepExtractValue<Omit<Store, typeof isRemoved>> | undefined
+    : Store extends StoreWithValue<infer Value> ? Value
+    : Store extends StoreWithError ? undefined
+    : Store extends Array<any> ? DeepExtractValue<Store[number]>[] // we can't filter out empty arrs in modern ts :(
+    : Store extends object ? { [K in keyof Store as DeepExtractValue<Store[K]> extends Empty ? never : K]: DeepExtractValue<Store[K]> } : undefined;
 
-export type RemoveEmptyObject<T extends object> = T extends { [key: string]: undefined } ? undefined : T;
-
-export type ExtractValue<Store> = Store extends StoreWithValue<infer Value>
-    ? Value
-    : Store extends NoSubmit ? undefined
-    : Store extends Removable ? ExtractValue<Omit<Store, typeof isRemoved>> | undefined
-    : Store extends Array<any> ? Array<ExtractValue<Store[number]>>
-    : Store extends object ? RemoveEmptyObject<RemoveEmptyKeys<{ [K in keyof Store]: ExtractValue<Store[K]> }>> : undefined;
+export type ExtractValue<Store> = Store extends object ? Exclude<DeepExtractValue<Store>, Record<string, undefined>> : DeepExtractValue<Store>;
 
 export type Submit<Store> = (state: Store) => ValidationError | ExtractValue<Store>;
 

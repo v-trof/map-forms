@@ -25,22 +25,26 @@ export const createValidContext = () => {
 }
 
 export const ensureValid = <T>(getValue: () => T) => {
-    return () => {
+    return (): T | ValidationError => {
         const { getError, dispose } = createValidContext();
 
         try {
             const value = getValue();
-
-            if (getError()) {
-                return getError();
+            const error = getError();
+            if (error) {
+                return error;
             }
 
             return value;
-        } catch (error) {
-            if (getError() === undefined) {
+        } catch (jsError) {
+            const validationError = getError();
+            
+            if (validationError === undefined) {
                 // this code can fail when undefined is returned form valid when it shouldn't according to ts
                 // in other cases it is definitely an error in the code and we propagate it
-                throw error;
+                throw jsError;
+            } else {
+                return validationError;
             }
         } finally {
             dispose();

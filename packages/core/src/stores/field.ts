@@ -35,7 +35,7 @@ field.removable = <Value>(validator?: Validator<Value>): Field<Value> & Removabl
     return fieldStore;
 }
 
-field.optional = <Value>(validator?: Validator<Value>): Field<Value | undefined> => {
+const optional = <Value>(validator?: Validator<Value>): Field<Value | undefined> => {
     const fieldStore = makeBaseField<Value | undefined, Value | undefined>({
         required: false,
         initialValue: undefined,
@@ -45,7 +45,7 @@ field.optional = <Value>(validator?: Validator<Value>): Field<Value | undefined>
     return fieldStore;
 }
 
-field.optionalRemovable = <Value>(validator?: Validator<Value>): Field<Value | undefined> & Removable => {
+optional.removable = <Value>(validator?: Validator<Value>): Field<Value | undefined> & Removable => {
     const fieldStore = makeBaseField<Value | undefined, Value | undefined>({
         required: false,
         initialValue: undefined,
@@ -54,6 +54,8 @@ field.optionalRemovable = <Value>(validator?: Validator<Value>): Field<Value | u
 
     return fieldStore;
 }
+
+field.optional = optional;
 
 export type NeverEmptyField<Value> = {
     value: Value;
@@ -67,7 +69,7 @@ export type NeverEmptyField<Value> = {
     [getValue]: () => ValidationError | Value;
 }
 
-field.neverEmpty = <Value>(initialValue: Value, validator?: Validator<Value>): NeverEmptyField<Value> => {
+const neverEmpty = <Value>(initialValue: Value, validator?: Validator<Value>): NeverEmptyField<Value> => {
     const fieldStore = makeBaseField<Value, Value>({
         required: true,
         initialValue,
@@ -77,7 +79,7 @@ field.neverEmpty = <Value>(initialValue: Value, validator?: Validator<Value>): N
     return fieldStore;
 }
 
-field.neverEmptyRemovable = <Value>(initialValue: Value, validator?: Validator<Value>): NeverEmptyField<Value> & Removable => {
+neverEmpty.removable = <Value>(initialValue: Value, validator?: Validator<Value>): NeverEmptyField<Value> & Removable => {
     const fieldStore = makeBaseField<Value, Value>({
         required: true,
         initialValue,
@@ -86,3 +88,5 @@ field.neverEmptyRemovable = <Value>(initialValue: Value, validator?: Validator<V
 
     return fieldStore;
 }
+
+field.neverEmpty = neverEmpty;
