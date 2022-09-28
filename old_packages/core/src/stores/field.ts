@@ -3,15 +3,15 @@ import { ValidationError, Validator } from "../protocol/error";
 import { makeBaseField } from "./baseField";
 
 // we do a re-write insted of using baseField generic to avoid long typescript errors in consumer code
-export type Field<Value> = {
+export interface Field<Value> {
     value: Value | undefined;
     validationErrors: {
         parsing: ValidationError | undefined;
         runtime: ValidationError | undefined;
         backend: ValidationError | undefined;
     };
-    isValid: boolean;
     interactionStatus: 'new' | 'active' | 'wasActive';
+    isValid: boolean;
     [getValue]: () => ValidationError | Value;
 }
 

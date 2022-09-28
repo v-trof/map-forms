@@ -1,5 +1,5 @@
 import { Alert, AlertIcon, Box, Button, Flex, VStack } from "@chakra-ui/react";
-import { all, check, Check, error, ExtractValue, field, Field, maxLength, minLength, modifyError, noSubmit, useSubmit } from "@informal/core"
+import { all, check, Check, error, ExtractValue, field, Field, getValue, maxLength, minLength, modifyError, noSubmit, useSubmit } from "@informal/core"
 import { makeAutoObservable, runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useMemo } from "react";
@@ -8,6 +8,7 @@ import { post, FakeResponse } from "../fakeNormalAppServices/transport";
 import { useTranslation } from "../fakeNormalAppServices/useTranslation";
 import { useCheck, useTextField } from "../components/FormHooks";
 import { FormInput } from "../components/Form";
+import { extractValue } from "@informal/core/src/accessors/submit";
 
 export type SignupDTO = {
     login: string;
@@ -18,6 +19,7 @@ export type SignupStore = {
     login: Field<string>;
     password: Field<string>;
     notSame: Check;
+    anyFilled: Check;
 }
 
 // Почему валидаторы не принимают сообщения вторым аргументом
@@ -28,6 +30,13 @@ export const createSignupStore = () => {
         notSame: check(() => {
             if (store.login.value === store.password.value) {
                 return error('error.password=login');
+            }
+        }),
+        anyFilled: check(() => {
+            const value = extractValue(store);
+
+            if(Object.values(value).filter((v) => v).length === 0) {
+                return error('user_complaints_cant_be empty');
             }
         })
     };

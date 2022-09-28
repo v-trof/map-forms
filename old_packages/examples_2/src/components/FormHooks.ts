@@ -1,4 +1,4 @@
-import { Check, error, Field, getErrorAfterInteraction } from "@informal/core";
+import { check, Check, error, Field, getErrorAfterInteraction } from "@informal/core";
 import { action } from "mobx";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "../fakeNormalAppServices/useTranslation";
@@ -18,11 +18,36 @@ export const useTextField = (field: Field<string> | Field<string | undefined>) =
     };
 }
 
+export const useSelect = <T extends string>(field: Field<T> | Field<T | undefined>, id2Value?: { [id: string]: T }) => {
+    const t = useTranslation();
+    const error = getErrorAfterInteraction(field);
+
+    return {
+        value: id2Value ? Object.entries(id2Value).find((([_key, v]) => field.value === v))?.[0] : field.value,
+        onChange: action((e: React.ChangeEvent<HTMLSelectElement>) => {
+            field.interactionStatus = 'wasActive';
+            if (id2Value) {
+                field.value = id2Value[e.target.value];
+            }
+            field.value = e.target.value as any || undefined; // required expects undefined
+        }),
+        onFocus: action(() => field.interactionStatus = 'active'),
+        error: error && t(error.message, error.params)
+    };
+}
+
+export const useCheck = (check: Check) => {
+    const t = useTranslation();
+    const error = getErrorAfterInteraction(check);
+
+    return { error: error && t(error.message, error.params) }
+}
+
+
 /**
  * Based off text inputs since browsers handle numbers too differently
- * @returns 
  */
-export const useNumber = (field: Field<number> | Field<number | undefined>) => {
+ export const useNumber = (field: Field<number> | Field<number | undefined>) => {
     const t = useTranslation();
     const errorToShow = getErrorAfterInteraction(field);
 
@@ -60,29 +85,4 @@ export const useNumber = (field: Field<number> | Field<number | undefined>) => {
         onBlur: action(() => field.interactionStatus = 'wasActive'),
         error: errorToShow && t(errorToShow.message, errorToShow.params)
     };
-}
-
-export const useSelect = <T extends string>(field: Field<T> | Field<T | undefined>, id2Value?: { [id: string]: T }) => {
-    const t = useTranslation();
-    const error = getErrorAfterInteraction(field);
-
-    return {
-        value: id2Value ? Object.entries(id2Value).find((([_key, v]) => field.value === v))?.[0] : field.value,
-        onChange: action((e: React.ChangeEvent<HTMLSelectElement>) => {
-            field.interactionStatus = 'wasActive';
-            if (id2Value) {
-                field.value = id2Value[e.target.value];
-            }
-            field.value = e.target.value as any || undefined; // required expects undefined
-        }),
-        onFocus: action(() => field.interactionStatus = 'active'),
-        error: error && t(error.message, error.params)
-    };
-}
-
-export const useCheck = (check: Check) => {
-    const t = useTranslation();
-    const error = getErrorAfterInteraction(check);
-
-    return { error: error && t(error.message, error.params) }
 }
