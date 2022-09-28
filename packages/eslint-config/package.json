@@ -1,12 +1,23 @@
 {
-  "name": "@informal/repo",
+  "name": "@informal/eslint-config",
   "version": "1.0.0",
-  "scripts": {
-    "dev": "pnpm --filter=\"@informal/examples\" dev"
-  },
   "author": "https://github.com/v-trof",
   "license": "Apache License 2.0",
+  "main": ".eslintrc.js",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "5.38.1",
+    "@typescript-eslint/parser": "5.38.1",
+    "eslint": "8.24.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "2.26.0",
+    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-react": "7.31.8",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "prettier": "2.7.1",
+    "prettier-package-json": "2.7.0",
+    "typescript": "4.7.4"
+  },
+  "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "5.38.1",
     "@typescript-eslint/parser": "5.38.1",
     "eslint": "8.24.0",

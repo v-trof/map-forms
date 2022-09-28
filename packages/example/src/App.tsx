@@ -1,9 +1,8 @@
-import './App.css'
-import { Signup } from './1 signup/state-mobx/Signup'
+import "./App.css"
 
 function App() {
   return (
-    <Signup />
+    <div />
   )
 }
 
