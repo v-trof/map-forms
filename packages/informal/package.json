@@ -1,14 +1,12 @@
 {
   "name": "@informal/core",
   "version": "1.0.0",
-  "description": "",
   "main": "./core.ts",
   "scripts": {
     "test": "jest"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
+    "@informal/eslint-config": "workspace:^1.0.0",
     "mobx": "6.6.1",
     "react": "18.2.0",
     "typescript": "4.7.4"
@@ -20,5 +18,9 @@
     "@types/jest": "28.1.6",
     "@types/react": "18.0.15",
     "jest": "28.1.3"
+  },
+  "prettier": "@informal/eslint-config/.prettierrc.json",
+  "eslintConfig": {
+    "extends": "@informal"
   }
 }
