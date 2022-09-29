@@ -1,9 +1,26 @@
-import { Validate, Invalid } from './validation';
+import {
+    Validate,
+    Invalid,
+    all,
+    ExternalError,
+    isInvalid,
+    parsing,
+    backend,
+    required,
+} from './validation';
+
+export type BaseField<RawValue, ValidValue> = {
+    _value: RawValue;
+    _errors: ExternalError[];
+
+    value: RawValue;
+    getError(): Invalid | undefined;
+    submit(): Invalid | ValidValue;
+
+    addError(key: ExternalError['key'], error: ExternalError['error']): void;
+};
 
 export type Field<Value> = {
-    _value: Value | undefined;
-    _errors: Array<{ key: unknown; error: Invalid }>;
-
     value: Value | undefined;
     getError(): Invalid | undefined;
     submit(): Invalid | Value;
@@ -11,14 +28,18 @@ export type Field<Value> = {
     addError(key: unknown, error: Invalid): void;
 };
 
-// TODO: Remove direct dependency on backend and parsing with extendable system
-export const backend = () => undefined;
-export const parsing = () => undefined;
+const noop: Validate<unknown> = () => undefined;
 
-export const field = <Value>(validator?: Validate<Value>) => {
-    const fieldStore: Field<Value> = {
+const baseField = <RawValue, ValidValue>(
+    intialValue: RawValue,
+    validate: (
+        value: RawValue,
+        externalErrors: ExternalError[]
+    ) => Invalid | ValidValue
+) => {
+    const fieldStore: BaseField<RawValue, ValidValue> = {
         _errors: [],
-        _value: undefined,
+        _value: intialValue,
 
         get value() {
             return fieldStore._value;
@@ -28,30 +49,29 @@ export const field = <Value>(validator?: Validate<Value>) => {
             fieldStore._value = newValue;
         },
         getError: () => {
-            if (fieldStore._errors.length > 0) {
-                return fieldStore._errors[0].error;
+            const errorOrValue = validate(
+                fieldStore._value,
+                fieldStore._errors
+            );
+
+            if (isInvalid(errorOrValue)) {
+                return errorOrValue;
             }
 
-            if (fieldStore.value === undefined) {
-                return { message: 'required' };
-            }
-
-            if (validator) {
-                return validator(fieldStore.value);
-            }
+            return undefined;
         },
         submit: () => {
             // clear backend errors as submit === revalidation
             fieldStore._errors = fieldStore._errors.filter(
                 (x) => x.key !== backend
             );
-            const error = fieldStore.getError();
 
-            if (error) {
-                return error;
-            }
+            const errorOrValue = validate(
+                fieldStore._value,
+                fieldStore._errors
+            );
 
-            return fieldStore.value as Value;
+            return errorOrValue;
         },
         addError: (key, error) => {
             fieldStore._errors.push({ key, error });
@@ -61,47 +81,43 @@ export const field = <Value>(validator?: Validate<Value>) => {
     return fieldStore;
 };
 
-// TODO: Remove duplicate code
-field.optional = <Value>(validator?: Validate<Value>) => {
-    const fieldStore: Field<Value | undefined> = {
-        _value: undefined,
+export const field = <Value>(validator: Validate<Value> = noop) => {
+    const validateEmpty = all<undefined>(parsing, backend, required);
+    const validateFilled = all<Value>(parsing, backend, validator);
 
-        get value() {
-            return fieldStore._value;
-        },
-        set value(newValue) {
-            fieldStore._errors.length = 0;
-            fieldStore._value = newValue;
-        },
+    const fieldStore: Field<Value> = baseField<Value | undefined, Value>(
+        undefined,
+        (value, externalErrors) => {
+            if (value === undefined) {
+                const error = validateEmpty(undefined, externalErrors);
 
-        getError: () => {
-            if (fieldStore._errors.length > 0) {
-                return fieldStore._errors[0].error;
+                // required is gurateed to return an error in this case
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                return error!;
             }
 
-            if (fieldStore.value === undefined) {
-                return undefined;
-            }
+            return validateFilled(value, externalErrors) || value;
+        }
+    );
 
-            if (validator) {
-                return validator(fieldStore.value);
-            }
-        },
-        submit: () => {
-            fieldStore._errors.length = 0;
-            const error = fieldStore.getError();
+    return fieldStore;
+};
 
-            if (error) {
-                return error;
-            }
+field.optional = <Value>(validator: Validate<Value> = noop) => {
+    const validateEmpty = all<undefined>(parsing, backend);
+    const validateFilled = all<Value>(parsing, backend, validator);
 
-            return fieldStore.value as Value;
-        },
-        _errors: [],
-        addError: (key, error) => {
-            fieldStore._errors.push({ key, error });
-        },
-    };
+    const fieldStore: Field<Value | undefined> = baseField<
+        Value | undefined,
+        Value | undefined
+    >(undefined, (value, externalErrors) => {
+        if (value === undefined) {
+            const error = validateEmpty(undefined, externalErrors);
+            return error;
+        }
+
+        return validateFilled(value, externalErrors) || value;
+    });
 
     return fieldStore;
 };
