@@ -1,6 +1,6 @@
 import { error, ErrorBox, Input } from './domain';
 import { errorBox, input } from './informal';
-import { valid } from './readers';
+import { valid } from './usage/readers_bad';
 import { isInvalidForm, submit } from './submit';
 import { all, maxLength, minLength } from './validators';
 

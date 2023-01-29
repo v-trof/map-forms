@@ -1,4 +1,4 @@
-import { extractValue, ExtractValue, isInvalidForm } from './submit';
+import { extractValue, ExtractValue, isInvalidForm } from '../submit';
 
 export type ReadContext = {
     reportUnapprovedRead: (reason: string, report: unknown) => void;
