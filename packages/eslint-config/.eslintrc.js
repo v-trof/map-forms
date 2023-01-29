@@ -5,7 +5,9 @@ const react = {
         'plugin:react-hooks/recommended',
     ],
     plugins: ['react', 'react-hooks'],
-    rules: {},
+    rules: {
+        'react/prop-types': 'off',
+    },
 };
 
 const imports = {

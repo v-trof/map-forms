@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "jest"
   },
   "dependencies": {
-    "@chakra-ui/react": "2.2.8",
+    "@chakra-ui/react": "2.4.9",
     "@chakra-ui/styled-system": "2.0.0",
     "@emotion/react": "11",
     "@emotion/styled": "11",
+    "@informal/eslint-config": "workspace:*",
+    "@informal/pkg": "workspace:*",
     "framer-motion": "6",
     "mobx": "6.6.1",
     "mobx-react-lite": "^3.4.0",
@@ -20,11 +23,20 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@babel/core": "7.0.0",
+    "@babel/core": "7.18.10",
     "@types/react": "18.0.15",
     "@types/react-dom": "18.0.6",
     "@vitejs/plugin-react": "2.0.0",
     "typescript": "4.7.4",
-    "vite": "3.0.0"
+    "vite": "3.0.0",
+    "@babel/preset-env": "7.18.10",
+    "@babel/preset-typescript": "7.18.6",
+    "@types/jest": "28.1.6",
+    "jest": "28.1.3",
+    "jest-runtime": "^29.4.1"
+  },
+  "prettier": "@informal/eslint-config/.prettierrc.json",
+  "eslintConfig": {
+    "extends": "@informal"
   }
 }

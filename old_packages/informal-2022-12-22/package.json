@@ -1,12 +1,12 @@
 {
-  "name": "@informal/pkg",
+  "name": "@informal/tdd-1",
   "version": "1.0.0",
-  "main": "./informal.ts",
+  "main": "./core.ts",
   "scripts": {
     "test": "jest"
   },
   "dependencies": {
-    "@informal/eslint-config": "workspace:*",
+    "@informal/eslint-config": "workspace:^1.0.0",
     "mobx": "6.6.1",
     "react": "18.2.0",
     "typescript": "4.7.4"
@@ -17,8 +17,7 @@
     "@babel/preset-typescript": "7.18.6",
     "@types/jest": "28.1.6",
     "@types/react": "18.0.15",
-    "jest": "28.1.3",
-    "jest-runtime": "^29.4.1"
+    "jest": "28.1.3"
   },
   "prettier": "@informal/eslint-config/.prettierrc.json",
   "eslintConfig": {

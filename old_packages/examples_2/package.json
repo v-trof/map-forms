@@ -1,5 +1,5 @@
 {
-  "name": "@informal/examples",
+  "name": "@informal/old_examples_2",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,7 +14,6 @@
     "@chakra-ui/styled-system": "2.0.0",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
-    "@informal/core": "workspace:*",
     "@informal/ui-react-chakra": "workspace:*",
     "framer-motion": "^6",
     "mobx": "6.6.1",
