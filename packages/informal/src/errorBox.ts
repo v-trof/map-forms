@@ -1,6 +1,6 @@
 import { computed, makeAutoObservable } from 'mobx';
 
-import { ErrorBox, getError, Validator } from './domain';
+import { ErrorBox, getError, setApproved, Validator } from './domain';
 import { claimReadContext } from './reader/readContext';
 
 export const errorBox = (validator?: Validator<undefined>) => {
@@ -40,6 +40,9 @@ export const errorBox = (validator?: Validator<undefined>) => {
         },
         [getError]() {
             return lastCall.get().error;
+        },
+        [setApproved]() {
+            // noop
         },
     };
 

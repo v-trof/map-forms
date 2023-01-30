@@ -6,8 +6,10 @@ import {
     getError,
     getValidValue,
     Input,
+    setApproved,
     Validator,
 } from './domain';
+import { claimReadContext } from './reader/readContext';
 
 export const input = <T>(validator?: Validator<T>): Input<T> => {
     const store: Input<T> = {
@@ -30,6 +32,8 @@ export const input = <T>(validator?: Validator<T>): Input<T> => {
             };
         },
         [getError]() {
+            let success = true;
+
             if (store.value === undefined) {
                 return error('required');
             }
@@ -38,7 +42,25 @@ export const input = <T>(validator?: Validator<T>): Input<T> => {
                 return undefined;
             }
 
-            return validator(store.value);
+            // TODO: in smart mixing consider approvals when depending on other fields
+            const dispose = claimReadContext((_, isSuccesful) => {
+                success = isSuccesful && success;
+            });
+
+            try {
+                const maybeError = validator(store.value);
+
+                if (!success) {
+                    return maybeError;
+                }
+
+                return maybeError;
+            } finally {
+                dispose();
+            }
+        },
+        [setApproved]() {
+            store.approved = true;
         },
     };
 

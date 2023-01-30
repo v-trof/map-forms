@@ -4,6 +4,7 @@ import {
     submit,
     ExtractValue,
     ErrorBox,
+    getError,
 } from '@informal/pkg';
 import { action } from 'mobx';
 import React, { useState } from 'react';
@@ -14,13 +15,14 @@ export const useTextInput = (
     input: Input<string> | Input<string | undefined>
 ) => {
     const t = useTranslation();
-    const error = input.approved ? input.error : undefined;
+    const error = input.approved ? input[getError]() : undefined;
 
     return {
         value: input.value || '',
         onChange: action(
             (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                input.value = e.target.value || undefined; // required expects undefined
+                input.approved = false;
+                input.value = e.target.value || undefined; // required expects explicit undefined
             }
         ),
         onBlur: action(() => {
@@ -30,9 +32,33 @@ export const useTextInput = (
     };
 };
 
+export const useSelect = <T>(
+    input: Input<T>,
+    options: { key: string; value: T }[]
+) => {
+    const t = useTranslation();
+    const error = input.approved ? input[getError]() : undefined;
+
+    return {
+        value:
+            input.value === undefined
+                ? undefined
+                : options.find((op) => op.key === input.value)?.key,
+        onClick: action(() => {
+            input.approved = false;
+        }),
+        onChange: action((e: React.ChangeEvent<HTMLSelectElement>) => {
+            input.approved = true;
+            const chosen = options.find((op) => op.key === e.target.value);
+            input.value = chosen?.value;
+        }),
+        error: error && t(error.message, error.params),
+    };
+};
+
 export const useError = (errorBox: ErrorBox) => {
     const t = useTranslation();
-    const error = errorBox.approved ? errorBox.error : undefined;
+    const error = errorBox.approved ? errorBox[getError]() : undefined;
 
     return error && t(error.message, error.params);
 };

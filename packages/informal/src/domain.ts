@@ -1,6 +1,7 @@
 export const getValidValue = Symbol('@informal/getValid');
 export const getCurrentValue = Symbol('@informal/getValue');
 export const getError = Symbol('@informal/getError');
+export const setApproved = Symbol('@informal/setApproved');
 
 export const $error = Symbol('@informal/error');
 export const error = (message: string, params?: object): ValidationError => {
@@ -11,6 +12,14 @@ export const error = (message: string, params?: object): ValidationError => {
 };
 
 export const $invalidForm = Symbol('@informal/invalidForm');
+export const invalidForm = (report?: unknown): InvalidForm => {
+    if (report) {
+        return { [$invalidForm]: true, report };
+    }
+
+    return { [$invalidForm]: true };
+};
+
 export const $noFallback = Symbol('@informal/noFallback');
 
 export interface ValidationError {
@@ -18,6 +27,8 @@ export interface ValidationError {
     message: string;
     params?: object;
 }
+
+export type InvalidForm = { [$invalidForm]: true; report?: unknown };
 
 export interface CurrentValueBox<Value> {
     [getCurrentValue]: () => { value: Value; approved: boolean } | undefined;
@@ -34,6 +45,7 @@ export interface ValueBox<Value>
 export interface ErrorBox {
     approved: boolean;
     [getError]: () => ValidationError | undefined;
+    [setApproved]: (approved: boolean) => void;
 }
 
 export interface Input<Value>
@@ -79,4 +91,12 @@ export const isErrorBox = (store: unknown): store is ErrorBox => {
     }
 
     return Object.hasOwn(store, getError);
+};
+
+export const isInvalidForm = (store: unknown): store is InvalidForm => {
+    if (!store || typeof store !== 'object') {
+        return false;
+    }
+
+    return $invalidForm in store;
 };

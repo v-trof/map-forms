@@ -11,45 +11,6 @@ import {
     value,
 } from '../validators';
 
-const hasLetters = (value: string) => {
-    return /[a-zA-Z]/.test(value);
-};
-
-const hasNumbers = (value: string) => {
-    return /[0-9]/.test(value);
-};
-
-const hasSpecial = (value: string) => {
-    return /[!?.,-_]/.test(value);
-};
-
-const checks = [hasLetters, hasNumbers, hasSpecial];
-
-const strongPassword = () => (value: string) => {
-    if (checks.filter((c) => c(value)).length < 2) {
-        return error('Password is too weak');
-    }
-};
-
-export const fancyPasswordChecks = () => {
-    const store = {
-        login: input(),
-        password: input(all(minLength(8), maxLength(40), strongPassword())),
-        get passwordChecks() {
-            const password = value(store.password);
-
-            return {
-                minLength: maxLength(8)(password) === undefined,
-                letters: hasLetters(password),
-                numbers: hasNumbers(password),
-                special: hasSpecial(password),
-            };
-        },
-    };
-
-    return store;
-};
-
 const manualMixing = () => {
     return {
         type: 'manualMixing',

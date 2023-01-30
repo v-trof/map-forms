@@ -26,7 +26,19 @@ export type ExtractValue<Store> = Store extends object
 
 import { action } from 'mobx';
 
-import { $error, ErrorBox, ValidationError, ValueBox } from './domain';
+import {
+    ErrorBox,
+    getError,
+    getValidValue,
+    InvalidForm,
+    invalidForm,
+    isError,
+    isErrorBox,
+    isInvalidForm,
+    isValidValueBox,
+    setApproved,
+    ValueBox,
+} from './domain';
 
 type Empty = undefined | Record<string, undefined>;
 type DeepExtractValue<Store> = Store extends ValueBox<infer Value>
@@ -47,41 +59,7 @@ export type ExtractValue<Store> = Store extends object
     ? Exclude<DeepExtractValue<Store>, Record<string, undefined>>
     : DeepExtractValue<Store>;
 
-export const $invalidForm = Symbol('@informal/invalidForm');
-export type InvalidForm = { [$invalidForm]: true; report?: unknown };
-export const invalidForm = (report?: unknown): InvalidForm => {
-    if (report) {
-        return { [$invalidForm]: true, report };
-    }
-
-    return { [$invalidForm]: true };
-};
-
-const isError = (store: unknown): store is ValidationError => {
-    if (!store || typeof store !== 'object') {
-        return false;
-    }
-
-    return Object.hasOwn(store, $error);
-};
-
-const isValueBox = (store: object): store is ValueBox<unknown> => {
-    return Object.hasOwn(store, 'getValid');
-};
-
-const isErrorBox = (store: object): store is ErrorBox => {
-    return 'error' in store;
-};
-
-export const isInvalidForm = (store: unknown): store is InvalidForm => {
-    if (!store || typeof store !== 'object') {
-        return false;
-    }
-
-    return $invalidForm in store;
-};
-
-export const reportError = (maybeError: unknown) => {
+export const maybeReportError = (maybeError: unknown) => {
     if (!isError(maybeError)) {
         return maybeError;
     }
@@ -96,24 +74,23 @@ export const reportError = (maybeError: unknown) => {
     return invalidForm({ error: maybeError.message });
 };
 
-export const extractValue = (
-    store: unknown,
-    onValueBox: (store: ValueBox<unknown>) => void
-): any => {
+export const extractValue = (store: unknown): any => {
     if (typeof store !== 'object' || !store) {
         return undefined;
     }
 
-    if (isValueBox(store)) {
-        onValueBox(store);
+    if (isValidValueBox(store)) {
+        const result = store[getValidValue]();
+        const value = result?.value;
 
-        const result = store.getValid();
-
-        return reportError(result);
+        if (value !== undefined) {
+            return value;
+        }
     }
 
     if (isErrorBox(store)) {
-        return reportError(store.error);
+        store[setApproved](true);
+        return maybeReportError(store[getError]());
     }
 
     let isEmpty = true;
@@ -122,7 +99,7 @@ export const extractValue = (
     const newValue: { [key: string]: unknown } = {};
 
     for (const key in storeObj) {
-        const value = extractValue(storeObj[key], onValueBox);
+        const value = extractValue(storeObj[key]);
 
         if (isInvalidForm(value)) {
             isValid = false;
@@ -149,6 +126,6 @@ export const extractValue = (
 
 export const submit = action(
     <Store>(store: Store): ExtractValue<Store> | InvalidForm => {
-        return extractValue(store, (valueBox) => (valueBox.approved = true));
+        return extractValue(store);
     }
 );
