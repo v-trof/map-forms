@@ -1,15 +1,9 @@
+import { errorBox, input, valid } from '../..';
 import { alt, removable } from '../compose';
-import { error } from '../domain';
-import { errorBox, input, valueBox } from '../informal';
+import { error, ValueBox } from '../domain';
 import { number, parsed } from '../parsed';
-import {
-    all,
-    inRange,
-    maxLength,
-    minLength,
-    valid,
-    value,
-} from '../validators';
+import { submit } from '../submit';
+import { inRange, maxLength } from '../validators';
 
 const manualMixing = () => {
     return {
@@ -17,6 +11,8 @@ const manualMixing = () => {
         tasksPerSuite: parsed(number, inRange(0, 1000)),
     };
 };
+
+const valueBox = <T>(v: T): ValueBox<T> => 0 as any;
 
 const smartMixing = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,17 +36,17 @@ const smartMixing = () => {
         allowPartialSuite: input<boolean>(),
         minNormal: parsed(
             number,
-            inRange(0, () => value(store.normal))
+            inRange(0, () => store.normal.value)
         ),
 
         minGolden: parsed(
             number,
-            inRange(0, () => value(store.golden))
+            inRange(0, () => store.golden.value)
         ),
 
         minTraning: parsed(
             number,
-            inRange(0, () => value(store.training))
+            inRange(0, () => store.training.value)
         ),
     };
 
@@ -96,3 +92,6 @@ export const poolInfo = () => {
         description: removable(input(maxLength(3000))),
     };
 };
+
+const val = submit(poolInfo());
+const val2 = submit(adjuster);

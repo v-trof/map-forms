@@ -2,7 +2,7 @@ import { Alert, AlertIcon, AlertTitle, Button } from '@chakra-ui/react';
 import { observer } from 'mobx-react-lite';
 
 import { Page, TextInput } from '../../DesignSystem';
-import { useError, useSubmit, useTextInput } from '../../chakraHoksStateMobx';
+import { useError, useSubmit, useTextInput } from '../../antdHooksMobx';
 import { post } from '../../fakeNormalAppServices/transport';
 import { useTranslation } from '../../fakeNormalAppServices/useTranslation';
 

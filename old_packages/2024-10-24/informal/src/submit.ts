@@ -24,7 +24,7 @@ export type ExtractValue<Store> = Store extends object
     : DeepExtractValue<Store>;
 */
 
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 
 import {
     ErrorBox,
@@ -37,11 +37,11 @@ import {
     isInvalidForm,
     isValidValueBox,
     setApproved,
-    ValueBox,
+    ValidValueBox,
 } from './domain';
 
 type Empty = undefined | Record<string, undefined>;
-type DeepExtractValue<Store> = Store extends ValueBox<infer Value>
+type DeepExtractValue<Store> = Store extends ValidValueBox<infer Value>
     ? Value
     : Store extends ErrorBox
     ? undefined
@@ -124,8 +124,6 @@ export const extractValue = (store: unknown): any => {
     return undefined;
 };
 
-export const submit = action(
-    <Store>(store: Store): ExtractValue<Store> | InvalidForm => {
-        return extractValue(store);
-    }
-);
+export const submit = <Store>(
+    store: Store
+): ExtractValue<Store> | InvalidForm => runInAction(() => extractValue(store));

@@ -7,8 +7,10 @@
   "author": "https://github.com/v-trof",
   "license": "Apache License 2.0",
   "devDependencies": {
-    "@informal/eslint-config": "workspace:^1.0.0"
+    "@informal/eslint-config": "workspace:^"
   },
-  "prettier": "@informal/eslint-config/.prettierrc.json", 
-  "eslintConfig": { "extends": "@informal" }
+  "prettier": "@informal/eslint-config/.prettierrc.json",
+  "eslintConfig": {
+    "extends": "@informal"
+  }
 }

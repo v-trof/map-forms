@@ -11,6 +11,5 @@
   },
   "include": [
     "./src",
-    "./core.ts"
-, "../example/src/examples/1_signIn", "../example/src/examples/2_signUp/signUpStore.ts"  ]
+    "./core.ts", "../../../packages/informal/src/submit.test.ts" ]
 }
