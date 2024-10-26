@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const getValidValue = Symbol('@informal/getValidValue');
 export const getCurrentValue = Symbol('@informal/getCurrentValue');
 export const getError = Symbol('@informal/getError');
@@ -108,4 +110,19 @@ export const hasIgnore = (store: unknown): store is Ignored => {
     }
 
     return Object.hasOwn(store, informalIgnore);
+};
+
+export const zodToValidationError = (
+    zodError?: z.ZodError
+): ValidationError | undefined => {
+    if (!zodError) {
+        return undefined;
+    }
+
+    const params: z.ZodIssue & { fullError: z.ZodError } = {
+        ...zodError.issues[0],
+        fullError: zodError,
+    };
+
+    return error(zodError.issues[0].message, params);
 };

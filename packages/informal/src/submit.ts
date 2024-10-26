@@ -89,7 +89,7 @@ export const extractValue = (store: unknown) => {
             continue;
         }
 
-        if (typeof value !== undefined) {
+        if (value !== undefined) {
             isEmpty = false;
             newValue[key] = value;
         }

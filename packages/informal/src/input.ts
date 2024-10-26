@@ -2,11 +2,11 @@ import { action, observable } from 'mobx';
 import { z } from 'zod';
 
 import {
-    error,
     getCurrentValue,
     getValidValue,
     setApproved,
     ValidationError,
+    zodToValidationError,
 } from './domain';
 
 export type Input<Z extends z.ZodTypeAny> = {
@@ -33,12 +33,7 @@ export const input = <Schema extends z.ZodTypeAny>(
                 return result.data;
             }
 
-            const params: z.ZodIssue & { fullError: z.ZodError } = {
-                ...result.error.issues[0],
-                fullError: result.error,
-            };
-
-            return error(result.error.issues[0].message, params);
+            return zodToValidationError(result.error);
         },
     });
 

@@ -5,7 +5,7 @@ import {
     input,
     removable,
     valid,
-    validation,
+    validationZod,
     validSingle,
 } from '@informal/pkg';
 import { z } from 'zod';
@@ -27,7 +27,7 @@ const smartMixing = () => {
         normal: normal,
         golden: golden,
         training: training,
-        notEmptySuite: validation(
+        notEmptySuite: validationZod(
             z
                 .any()
                 .refine(

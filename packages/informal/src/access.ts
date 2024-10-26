@@ -83,12 +83,13 @@ export const extractDeep = (
             throw value;
         }
 
-        if (typeof value !== undefined) {
+        if (value !== undefined) {
             isEmpty = false;
             newValue[key] = value;
         }
     }
 
+    // [currentSlice, newValue, isEmpty]; //?
     if (!isEmpty) {
         return newValue;
     }

@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import {
     doSubmit,
-    error,
     getError,
     isValidationError,
     setApproved,
@@ -11,6 +10,7 @@ import {
     WithApproval,
     WithError,
     WithSubmit,
+    zodToValidationError,
 } from './domain';
 
 export type Validation = WithApproval & WithError;
@@ -53,12 +53,7 @@ export const validationZod = <Schema extends z.ZodTypeAny>(
                 return undefined;
             }
 
-            const params: z.ZodIssue & { fullError: z.ZodError } = {
-                ...result.error.issues[0],
-                fullError: result.error,
-            };
-
-            return error(result.error.issues[0].message, params);
+            return zodToValidationError(result.error);
         },
     });
 
