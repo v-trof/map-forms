@@ -7,6 +7,7 @@ import {
     setApproved,
     setCurrentValue,
     ValidationError,
+    zodToValidationError,
 } from '../domain';
 
 import { makeSuggestManager, SuggestManager } from './suggestManager';
@@ -65,7 +66,7 @@ export const suggest = <Schema extends z.ZodTypeAny>(
                 return result.data;
             }
 
-            return result.error;
+            return zodToValidationError(result.error);
         },
     });
 

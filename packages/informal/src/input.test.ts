@@ -6,8 +6,10 @@ import {
     WithApproval,
     WithValidValue,
     error,
+    isValidationError,
 } from './domain';
 import { input, notEmpty, options, ParsedInput, parsedInput } from './input';
+import { submit } from './submit';
 
 test('Types', () => {
     const test: WithValidValue<string> &
@@ -131,11 +133,20 @@ test('supports select with default value', () => {
     select.value = 'red';
     expect(select.value).toBe('red');
 
-    select.value = 'green';
-    expect(select.value).toBe('green');
-
     select.value = 15;
     expect(select.value).toBe(15);
+
+    select.value = 'green';
+    expect(select.value).toBe('green');
+    expect(validSingle(select)).toBe('green');
+
+    const submitted = submit(select);
+
+    if (isValidationError(submitted)) {
+        expect(submitted).toEqual('should never happen');
+    }
+
+    expect(submitted).toBe('green');
 
     // @ts-expect-error values outside of the union are not allowed
     select.value = 'blue';

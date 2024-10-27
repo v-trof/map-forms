@@ -1,13 +1,19 @@
 import { z } from 'zod';
 
+import { current, valid } from '../access';
+import { options } from '../input';
+import { submit } from '../submit';
+
 import { suggest } from './suggest';
 import { asyncProvider, localProvider } from './suggestProvider';
 
-const options = [1, 2, 3, 4, 5].map((num) => ({
-    value: num,
-    content: `str-${num}`,
-}));
-const numberProvider = localProvider(options, { searchType: 'includes' });
+const numberProvider = localProvider(
+    [1, 2, 3, 4, 5].map((num) => ({
+        value: num,
+        content: `str-${num}`,
+    })),
+    { searchType: 'includes' }
+);
 const asyncNumberProvider = asyncProvider(
     (query) =>
         Promise.resolve(
@@ -152,4 +158,30 @@ it('Has clear button that clears both query and value', async () => {
     await sleep(1);
     expect(field.suggest.query).toBe('');
     expect(field.value).toBe(undefined);
+});
+
+it('is compatible with options', async () => {
+    const field = suggest(
+        options('RS', 'NL', 'US', 'GB'),
+        localProvider(
+            (['RS', 'NL', 'US', 'GB'] as const).map((x) => ({
+                value: x,
+                content: x,
+            }))
+        )
+    );
+    field.onChange('RS');
+    await sleep(1);
+    expect(field.suggest.query).toBe('RS');
+    field.onClear();
+    expect(field.suggest.query).toBe('');
+    expect(field.value).toBe(undefined);
+    expect(current(field)).toBe(undefined);
+    expect(() => valid(field)).toThrowError();
+
+    field.onChange('NL');
+    await sleep(1);
+
+    const result = submit(field);
+    expect(result).toBe('NL');
 });
