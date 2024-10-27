@@ -1,5 +1,4 @@
 import { action, observable } from 'mobx';
-import { z } from 'zod';
 
 import {
     doSubmit,
@@ -10,27 +9,58 @@ import {
     WithApproval,
     WithError,
     WithSubmit,
-    zodToValidationError,
 } from './domain';
 
-export type Validation = WithApproval & WithError;
+export type Validation = WithError;
+
+type AccessContext = {
+    onAccess: (isApproved: boolean) => void;
+};
+const informalGlobal: { accessContext: AccessContext } = {
+    accessContext: {
+        onAccess: () => undefined,
+    },
+};
+
+export const claimAccessContext = (context: AccessContext) => {
+    const prevContext = informalGlobal.accessContext;
+    informalGlobal.accessContext = context;
+    return () => {
+        informalGlobal.accessContext = prevContext;
+    };
+};
+
+export const reportApprovalStatus = (isApproved: boolean) => {
+    informalGlobal.accessContext.onAccess(isApproved);
+};
 
 export const validation = (
     validator: () => ValidationError | undefined
 ): Validation => {
     const store: Validation = observable({
-        approved: false,
-        [setApproved]: action((value: boolean) => {
-            store.approved = value;
-        }),
         [getError]: () => {
+            let isApproved = true;
+            const dispose = claimAccessContext({
+                onAccess: (value) => {
+                    isApproved = value && isApproved;
+                },
+            });
+
             try {
-                return validator();
+                // handle dependencies properly
+                const result = validator();
+                if (isValidationError(result)) {
+                    return { ...result, approved: isApproved };
+                }
+                return undefined;
             } catch (e) {
+                // this is questionable since invalid inputs have their own display
                 if (isValidationError(e)) {
-                    return e;
+                    return { ...e, approved: false };
                 }
                 throw e;
+            } finally {
+                dispose();
             }
         },
     });
@@ -38,31 +68,10 @@ export const validation = (
     return store;
 };
 
-export const validationZod = <Schema extends z.ZodTypeAny>(
-    schema: Schema
-): Validation => {
-    const store: Validation = observable({
-        approved: false,
-        [setApproved]: action((value: boolean) => {
-            store.approved = value;
-        }),
-        [getError]: () => {
-            const result = schema.safeParse(undefined);
-
-            if (result.success) {
-                return undefined;
-            }
-
-            return zodToValidationError(result.error);
-        },
-    });
-
-    return store;
-};
-
-export type ValidationBackend = Validation & {
-    setError: (backendError: ValidationError | undefined) => void;
-} & WithSubmit<void>;
+export type ValidationBackend = WithApproval &
+    WithError & {
+        setError: (backendError: ValidationError | undefined) => void;
+    } & WithSubmit<void>;
 
 export const ValidationBackend = (): ValidationBackend => {
     const store = observable({

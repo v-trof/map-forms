@@ -167,6 +167,20 @@ const _extractError = (currentSlice: unknown): ValidationError | undefined => {
         return currentSlice[getError]();
     }
 
+    if (hasValidValue(currentSlice)) {
+        const result = currentSlice[getValidValue]();
+        if (isValidationError(result)) {
+            return result;
+        }
+    }
+
+    if (hasCurrentValue(currentSlice)) {
+        const result = currentSlice[getCurrentValue]();
+        if (isValidationError(result)) {
+            return result;
+        }
+    }
+
     if (Array.isArray(currentSlice)) {
         return currentSlice.find((item) => extractError(item));
     }

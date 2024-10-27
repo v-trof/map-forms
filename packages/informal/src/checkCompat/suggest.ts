@@ -7,8 +7,9 @@ import {
     setApproved,
     setCurrentValue,
     ValidationError,
-    zodToValidationError,
 } from '../domain';
+import { validateAgainstZod } from '../input';
+import { reportApprovalStatus } from '../validation';
 
 import { makeSuggestManager, SuggestManager } from './suggestManager';
 import { SuggestProvider } from './suggestProvider';
@@ -54,19 +55,17 @@ export const suggest = <Schema extends z.ZodTypeAny>(
         [setApproved]: (value: boolean) => {
             field.approved = value;
         },
-        [getCurrentValue]: () => field.value,
+        [getCurrentValue]: () => {
+            reportApprovalStatus(field.approved);
+            return field.value;
+        },
         [setCurrentValue]: (newValue: z.input<Schema> | undefined) => {
             suggestManager.setQueryFromValue(newValue);
             field.value = newValue;
             field.approved = true;
         },
         [getValidValue]: () => {
-            const result = schema.safeParse(field.value);
-            if (result.success) {
-                return result.data;
-            }
-
-            return zodToValidationError(result.error);
+            return validateAgainstZod(schema, field.value, field.approved);
         },
     });
 

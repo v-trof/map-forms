@@ -214,7 +214,8 @@ test('during submit alt returns a report of all errors', () => {
     const report = (result as any).params;
 
     const requiredError = zodToValidationError(
-        z.string().min(1).safeParse(undefined).error
+        z.string().min(1).safeParse(undefined).error,
+        false
     );
 
     expect(report).toEqual({

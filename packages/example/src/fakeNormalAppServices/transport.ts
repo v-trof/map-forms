@@ -7,8 +7,6 @@ export const post = async <Data, Result = never>(
     data: Data,
     res: FakeResponse<Result>
 ): Promise<FakeResponse<Result>> => {
-    console.log('POST', url, data);
-
     await new Promise((r) => setTimeout(r, 1000));
 
     return Promise.resolve(res);

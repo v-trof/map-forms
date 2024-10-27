@@ -1,43 +1,61 @@
-import { Alert, AlertIcon, AlertTitle, Button } from '@chakra-ui/react';
+import { error, input, valid, validation } from '@informal/pkg';
+import { Button } from 'antd';
 import { observer } from 'mobx-react-lite';
+import { z } from 'zod';
 
-import { Page, TextInput } from '../../DesignSystem';
-import { useError, useSubmit, useTextInput } from '../../antdHooksMobx';
+import { TextInput, useSubmit, Validation } from '../../AntdFields';
 import { post } from '../../fakeNormalAppServices/transport';
 import { useTranslation } from '../../fakeNormalAppServices/useTranslation';
 
-import { SignUpStore } from './signUpStore';
+export const createSignUpStore = () => {
+    const store = {
+        login: input(z.string()),
+        password: input(z.string().min(8).max(40)),
+        notSame: validation(() => {
+            if (valid(store.login) === valid(store.password)) {
+                return error('password equal to login is not secure enough');
+            }
+        }),
+    };
+
+    return store;
+};
+
+export type SignUpStore = ReturnType<typeof createSignUpStore>;
 
 export const SignUp = observer(({ store }: { store: SignUpStore }) => {
     const t = useTranslation();
-    const login = useTextInput(store.login);
-    const password = useTextInput(store.password);
-    const notSame = useError(store.notSame);
-
     const { handleSubmit, isSubmitting } = useSubmit(store, async (value) => {
-        await post('/sign-in', value, { ok: true, value: 0 });
+        await post<
+            {
+                login: string;
+                password: string;
+            },
+            boolean
+        >('/sign-in', value, { ok: true, value: true });
     });
 
     return (
-        <Page>
+        <div
+            style={{
+                height: '100vh',
+                width: '100vw',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
             <form onSubmit={handleSubmit}>
-                <TextInput label={t('Login')} {...login} />
+                <TextInput label={t('Login')} store={store.login} />
                 <br />
-                <TextInput label={t('Password')} {...password} />
+                <TextInput label={t('Password')} store={store.password} />
                 <br />
-                {notSame && (
-                    <>
-                        <Alert status='error'>
-                            <AlertIcon />
-                            <AlertTitle>{notSame}</AlertTitle>
-                        </Alert>
-                        <br />
-                    </>
-                )}
-                <Button isLoading={isSubmitting} type='submit'>
+                <Validation store={store.notSame} />
+                <Button loading={isSubmitting} htmlType='submit'>
                     Submit
                 </Button>
             </form>
-        </Page>
+        </div>
     );
 });

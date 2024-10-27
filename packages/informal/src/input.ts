@@ -10,6 +10,7 @@ import {
     ValidationError,
     zodToValidationError,
 } from './domain';
+import { reportApprovalStatus } from './validation';
 
 const informalDefined = Symbol('@informal/defined');
 export type ZodNotEmpty = z.ZodTypeAny & { [informalDefined]: unknown };
@@ -38,6 +39,20 @@ export const notEmpty = <
     return changed;
 };
 
+export const validateAgainstZod = <Schema extends z.ZodTypeAny>(
+    schema: Schema,
+    value: unknown,
+    approval: boolean
+): ValidationError | z.infer<Schema> => {
+    reportApprovalStatus(approval);
+    const result = schema.safeParse(value);
+    if (result.success) {
+        return result.data;
+    }
+
+    return zodToValidationError(result.error, false);
+};
+
 export const input = <Schema extends z.ZodTypeAny>(
     schema: Schema
 ): Input<Schema> => {
@@ -52,18 +67,15 @@ export const input = <Schema extends z.ZodTypeAny>(
         [setApproved]: action((value: boolean) => {
             store.approved = value;
         }),
-        [getCurrentValue]: () => store.value,
+        [getCurrentValue]: () => {
+            reportApprovalStatus(store.approved);
+            return store.value;
+        },
         [setCurrentValue]: action((value: Value<Schema>) => {
             store.value = value;
         }),
-        [getValidValue]: () => {
-            const result = schema.safeParse(store.value);
-            if (result.success) {
-                return result.data;
-            }
-
-            return zodToValidationError(result.error);
-        },
+        [getValidValue]: () =>
+            validateAgainstZod(schema, store.value, store.approved),
     });
 
     return store;
@@ -106,22 +118,25 @@ export const parsedInput = <State, Schema extends z.ZodTypeAny>(
         [setApproved]: action((value: boolean) => {
             store.approved = value;
         }),
-        [getCurrentValue]: () => stateToCurrentValue(store.state),
+        [getCurrentValue]: () => {
+            reportApprovalStatus(store.approved);
+            const result = stateToCurrentValue(store.state);
+            if (isValidationError(result)) {
+                result.approved = store.approved;
+                return result;
+            }
+            return result;
+        },
         [setCurrentValue]: action((value: Value<Schema>) => {
             store.state = currentValueToState(value);
         }),
         [getValidValue]: () => {
-            const currentValue = stateToCurrentValue(store.state);
+            const currentValue = store[getCurrentValue]();
             if (isValidationError(currentValue)) {
                 return currentValue;
             }
 
-            const result = schema.safeParse(currentValue);
-            if (result.success) {
-                return result.data;
-            }
-
-            return zodToValidationError(result.error);
+            return validateAgainstZod(schema, currentValue, store.approved);
         },
     });
 

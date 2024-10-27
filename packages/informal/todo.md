@@ -13,7 +13,7 @@
 - [x] filling in initial values
 - ❗️❗️❗️[x] parsed field (check that number is indeed number)
 - [x] try number (text field, with ui)
-- [ ] play with ui kit integration (probably force custom components after all)
+- [x] play with ui kit integration (probably force custom components after all)
 - [x] try porting old suggest as custom field (store)
 
 ❗️❗️❗️[x] ideally make "getValidValue" enough and do not requrie getError

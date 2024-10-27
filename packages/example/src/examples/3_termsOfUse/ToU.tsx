@@ -2,7 +2,7 @@ import { Button } from '@chakra-ui/react';
 import { observer } from 'mobx-react-lite';
 
 import { Page, TextInput } from '../../DesignSystem';
-import { useSubmit, useTextInput } from '../../antdHooksMobx';
+import { useSubmit, useTextInput } from '../../AntdFields';
 import { post } from '../../fakeNormalAppServices/transport';
 import { useTranslation } from '../../fakeNormalAppServices/useTranslation';
 

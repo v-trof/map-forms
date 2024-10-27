@@ -14,12 +14,13 @@ export const $error = Symbol('@informal/error');
 export const error = (
     message: string,
     params?: object,
-    blocksSubmit = false
+    blocksSubmit = true,
+    approved = false
 ): ValidationError => {
     if (params) {
-        return { [$error]: true, message, params, blocksSubmit };
+        return { [$error]: true, message, params, blocksSubmit, approved };
     }
-    return { [$error]: true, message, blocksSubmit };
+    return { [$error]: true, message, blocksSubmit, approved };
 };
 export const $noFallback = Symbol('@informal/noFallback');
 
@@ -28,6 +29,7 @@ export interface ValidationError {
     message: string;
     params?: object;
     blocksSubmit: boolean;
+    approved?: boolean;
 }
 
 export interface WithCurrentValue<Value> {
@@ -151,7 +153,8 @@ export const hasIgnore = (store: unknown): store is Ignored => {
 };
 
 export const zodToValidationError = (
-    zodError?: z.ZodError
+    zodError: z.ZodError | undefined,
+    approved: boolean
 ): ValidationError | undefined => {
     if (!zodError) {
         return undefined;
@@ -162,5 +165,5 @@ export const zodToValidationError = (
         fullError: zodError,
     };
 
-    return error(zodError.issues[0].message, params);
+    return error(zodError.issues[0].message, params, true, approved);
 };

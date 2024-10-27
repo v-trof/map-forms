@@ -1,9 +1,9 @@
 import { input } from '@informal/pkg';
-import { Button, Input } from 'antd';
+import { Button } from 'antd';
 import { observer } from 'mobx-react-lite';
 import { z } from 'zod';
 
-import { useSubmit, useTextInput } from '../../antdHooksMobx';
+import { TextInput, useSubmit } from '../../AntdFields';
 import { post } from '../../fakeNormalAppServices/transport';
 import { useTranslation } from '../../fakeNormalAppServices/useTranslation';
 
@@ -18,25 +18,8 @@ export const createSignInStore = () => {
 
 export type SignInStore = ReturnType<typeof createSignInStore>;
 
-const InputWithLabel = ({
-    label,
-    error,
-    ...props
-}: { label: string; error: string | undefined } & React.ComponentProps<
-    typeof Input
->) => (
-    <>
-        <label>{label}</label>
-        <Input {...props} />
-        <div style={{ color: 'red' }}>{error}</div>
-    </>
-);
-
 export const SignIn = observer(({ store }: { store: SignInStore }) => {
     const t = useTranslation();
-    const login = useTextInput(store.login);
-    const password = useTextInput(store.password);
-
     const { handleSubmit, isSubmitting } = useSubmit(store, async (value) => {
         await post<
             {
@@ -59,9 +42,9 @@ export const SignIn = observer(({ store }: { store: SignInStore }) => {
             }}
         >
             <form onSubmit={handleSubmit}>
-                <InputWithLabel label={t('Login')} {...login} />
+                <TextInput label={t('Login')} store={store.login} />
                 <br />
-                <InputWithLabel label={t('Password')} {...password} />
+                <TextInput label={t('Password')} store={store.password} />
                 <br />
                 <Button loading={isSubmitting} htmlType='submit'>
                     Submit
