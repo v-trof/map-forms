@@ -49,37 +49,53 @@ export type ExtractValidValue<Store> = Store extends object
 
 const sumbitErrorMessage = '@informal/submit: invalid form';
 
-export const extractValue = (store: unknown) => {
-    if (typeof store !== 'object' || !store || hasIgnore(store)) {
+export const submitSlice = (currentSlice: unknown) => {
+    if (
+        typeof currentSlice !== 'object' ||
+        !currentSlice ||
+        hasIgnore(currentSlice)
+    ) {
         return undefined;
     }
 
-    if (hasSubmit(store)) {
-        return store[doSubmit]();
+    if (hasSubmit(currentSlice)) {
+        return currentSlice[doSubmit]();
     }
 
-    if (hasApproval(store)) {
-        store[setApproved](true);
+    if (hasApproval(currentSlice)) {
+        currentSlice[setApproved](true);
     }
 
-    if (hasValidValue(store)) {
-        return store[getValidValue]();
+    if (hasValidValue(currentSlice)) {
+        return currentSlice[getValidValue]();
     }
 
-    if (hasCurrentValue(store)) {
-        return store[getCurrentValue]();
+    if (hasCurrentValue(currentSlice)) {
+        return currentSlice[getCurrentValue]();
     }
 
-    if (hasError(store)) {
-        return store[getError]();
+    if (hasError(currentSlice)) {
+        return currentSlice[getError]();
+    }
+
+    if (Array.isArray(currentSlice)) {
+        const arr: unknown[] = currentSlice.map((item) => submitSlice(item));
+
+        if (arr.every((item) => item === undefined)) {
+            return undefined;
+        }
+
+        return arr;
     }
 
     let isEmpty = true;
     let isValid = true;
     const newValue: { [key: string]: unknown } = {};
 
-    for (const key in store) {
-        const value = extractValue(store[key as keyof typeof store]);
+    for (const key in currentSlice) {
+        const value = submitSlice(
+            currentSlice[key as keyof typeof currentSlice]
+        );
 
         if (isValidationError(value)) {
             isValid = false;
@@ -108,7 +124,7 @@ export const extractValue = (store: unknown) => {
 
 export const submit = action(
     <Store>(store: Store): ExtractValidValue<Store> | ValidationError => {
-        return extractValue(store) as unknown as
+        return submitSlice(store) as unknown as
             | ExtractValidValue<Store>
             | ValidationError;
     }

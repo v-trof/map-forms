@@ -5,18 +5,18 @@
 - [x] validaiton that does not use any fields -> understand zod errors deeper
 - [x] alt
 - [x] array
-- [ ] filling in initial values
-- [ ] play with ui kit integration (probably force custom components after all)
-- [ ] data mapping for sub forms
 - [x] try number (counter)
-- ❗️❗️❗️[ ] parsed field (check that number is indeed number)
 - [x] try select 
 - [x] recursive current / valid
 - [x] constant doesn't widen type
+- [x] data mapping for sub forms
+- [x] filling in initial values
+- [ ] play with ui kit integration (probably force custom components after all)
 - [ ] try porting old suggest as custom field (store)
 - [ ] try porting old suggest as custom field (with ui)
 - [ ] try filling initial values via setCurrentValue
 - [ ] try number (text field, with ui)
+- ❗️❗️❗️[ ] parsed field (check that number is indeed number)
 
 ❗️❗️❗️[x] ideally make "getValidValue" enough and do not requrie getError
 

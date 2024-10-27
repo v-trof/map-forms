@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
 import { current, valid } from './access';
-import { alt, removable } from './combine';
+import { alt, transformSubmitValue, removable } from './combine';
 import { isValidationError, zodToValidationError } from './domain';
-import { input } from './input';
+import { Input, input } from './input';
+import { add, inputRecord } from './strucureInputs';
 import { submit } from './submit';
 
 test('alt should validate current value', () => {
@@ -236,4 +237,102 @@ test('during submit alt returns a report of all errors', () => {
         field: requiredError,
         deeper: requiredError,
     });
+});
+
+test('mapSubmitValue can change input value', () => {
+    const double = transformSubmitValue(
+        input(z.number()),
+        (value) => value * 2
+    );
+
+    double.value = 10;
+    const result = submit(double);
+    if (isValidationError(result)) {
+        return expect(result).toBe('this should not happen');
+    }
+    const value: number = result;
+
+    expect(value).toBe(20);
+});
+
+test('mapSubmitValue can change form value', () => {
+    const store = {
+        name: input(z.string()),
+        birthday: input(z.date()),
+    };
+
+    store.name.value = 'Bob';
+    store.birthday.value = new Date(1995, 11, 17);
+
+    function getYearDifference(date1: Date, date2: Date): number {
+        const diffInMilliseconds = Math.abs(date2.getTime() - date1.getTime());
+        const millisecondsInYear = 1000 * 60 * 60 * 24 * 365.25; // Average year length, accounting for leap years
+        return Math.floor(diffInMilliseconds / millisecondsInYear);
+    }
+
+    const form = transformSubmitValue(store, (value) => ({
+        name: value.name,
+        age: getYearDifference(value.birthday, new Date(2024, 10, 20)),
+    }));
+
+    const result = submit(form);
+    if (isValidationError(result)) {
+        return expect(result).toBe('this should not happen');
+    }
+    const value: { name: string; age: number } = result;
+
+    expect(value).toEqual({ name: 'Bob', age: 28 });
+});
+
+test('mapSubmitValue can convert objects into arrays', () => {
+    const meta: Record<string, Input<z.ZodString>> = {};
+
+    meta.title = input(z.string());
+    meta.ticket = input(z.string());
+
+    meta.title.value = 'Test project';
+    meta.ticket.value = 'QUEUE-123';
+
+    const form = transformSubmitValue(meta, (value) =>
+        Object.entries(value).map(([key, value]) => ({
+            key: key,
+            value: [value],
+        }))
+    );
+
+    const result = submit(form);
+    if (isValidationError(result)) {
+        return expect(result).toBe('this should not happen');
+    }
+    const value: Array<{ key: string; value: string[] }> = result;
+
+    expect(value).toEqual([
+        { key: 'title', value: ['Test project'] },
+        { key: 'ticket', value: ['QUEUE-123'] },
+    ]);
+});
+
+test('mapSubmitValue can convert inputRecords into arrays', () => {
+    const form = transformSubmitValue(
+        inputRecord(() => input(z.string())),
+        (value) =>
+            Object.entries(value).map(([key, value]) => ({
+                key: key,
+                value: [value],
+            }))
+    );
+
+    add(form, 'title').value = 'Test project';
+    add(form, 'ticket').value = 'QUEUE-123';
+
+    const result = submit(form);
+    if (isValidationError(result)) {
+        return expect(result).toBe('this should not happen');
+    }
+    const value: Array<{ key: string; value: string[] }> = result;
+
+    expect(value).toEqual([
+        { key: 'title', value: ['Test project'] },
+        { key: 'ticket', value: ['QUEUE-123'] },
+    ]);
 });

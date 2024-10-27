@@ -5,6 +5,7 @@ import {
     getCurrentValue,
     getValidValue,
     setApproved,
+    setCurrentValue,
     ValidationError,
     zodToValidationError,
 } from './domain';
@@ -20,6 +21,7 @@ export type Input<Z extends z.ZodTypeAny> = {
     approved: boolean;
     [setApproved]: (value: boolean) => void;
     [getCurrentValue]: () => Value<Z>;
+    [setCurrentValue]: (value: Value<Z>) => void;
     [getValidValue]: () => z.infer<Z> | ValidationError;
 };
 
@@ -50,6 +52,9 @@ export const input = <Schema extends z.ZodTypeAny>(
             store.approved = value;
         }),
         [getCurrentValue]: () => store.value,
+        [setCurrentValue]: action((value: Value<Schema>) => {
+            store.value = value;
+        }),
         [getValidValue]: () => {
             const result = schema.safeParse(store.value);
             if (result.success) {

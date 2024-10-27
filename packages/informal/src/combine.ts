@@ -5,6 +5,9 @@ import {
     doSubmit,
     getCurrentValue,
     getValidValue,
+    hasSubmit,
+    isValidationError,
+    ValidationError,
     WithValidValue,
 } from './domain';
 import { ExtractValidValue, submit } from './submit';
@@ -50,3 +53,29 @@ export const removable = <T>(store: T) =>
         },
         'store'
     );
+
+export const transformSubmitValue = <Store extends object, NewValue>(
+    store: Store,
+    mapper: (value: ExtractValidValue<Store>) => NewValue
+) => {
+    let oldSubmit = (): ExtractValidValue<Store> | ValidationError =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        submit({ ...store, [doSubmit]: undefined }) as any;
+
+    if (hasSubmit(store)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        oldSubmit = store[doSubmit] as any;
+    }
+
+    const newStore = extendObservable(store, {
+        [doSubmit]: () => {
+            const value = oldSubmit();
+            if (isValidationError(value)) {
+                return value;
+            }
+            return mapper(value);
+        },
+    });
+
+    return newStore;
+};

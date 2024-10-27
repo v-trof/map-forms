@@ -2,10 +2,13 @@ import { z } from 'zod';
 
 export const getValidValue = Symbol('@informal/getValidValue');
 export const getCurrentValue = Symbol('@informal/getCurrentValue');
+export const setCurrentValue = Symbol('@informal/setCurrentValue');
 export const getError = Symbol('@informal/getError');
 export const setApproved = Symbol('@informal/setApproved');
 export const doSubmit = Symbol('@informal/doSubmit');
 export const informalIgnore = Symbol('@informal/ignore');
+export const addItem = Symbol('@informal/addItem');
+export const createItem = Symbol('@informal/createItem');
 
 export const $error = Symbol('@informal/error');
 export const error = (
@@ -29,6 +32,10 @@ export interface ValidationError {
 
 export interface WithCurrentValue<Value> {
     [getCurrentValue]: () => Value | ValidationError;
+}
+
+export interface WithSetCurrentValue<Value> {
+    [setCurrentValue]: (value: Value) => void;
 }
 
 export interface WithValidValue<Value> {
@@ -67,7 +74,23 @@ export const hasCurrentValue = (
         return false;
     }
 
-    return Object.hasOwn(store, getCurrentValue);
+    return (
+        Object.hasOwn(store, getCurrentValue) &&
+        (store as WithCurrentValue<unknown>)[getCurrentValue] !== undefined
+    );
+};
+
+export const hasSetCurrentValue = (
+    store: unknown
+): store is WithSetCurrentValue<unknown> => {
+    if (!store || typeof store !== 'object') {
+        return false;
+    }
+
+    return (
+        Object.hasOwn(store, setCurrentValue) &&
+        (store as WithSetCurrentValue<unknown>)[setCurrentValue] !== undefined
+    );
 };
 
 export const hasValidValue = (
@@ -77,7 +100,10 @@ export const hasValidValue = (
         return false;
     }
 
-    return Object.hasOwn(store, getValidValue);
+    return (
+        Object.hasOwn(store, getValidValue) &&
+        (store as WithValidValue<unknown>)[getValidValue] !== undefined
+    );
 };
 
 export const hasApproval = (store: unknown): store is WithApproval => {
@@ -85,7 +111,10 @@ export const hasApproval = (store: unknown): store is WithApproval => {
         return false;
     }
 
-    return Object.hasOwn(store, setApproved);
+    return (
+        Object.hasOwn(store, setApproved) &&
+        (store as WithApproval)[setApproved] !== undefined
+    );
 };
 
 export const hasSubmit = (store: unknown): store is WithSubmit<unknown> => {
@@ -93,7 +122,10 @@ export const hasSubmit = (store: unknown): store is WithSubmit<unknown> => {
         return false;
     }
 
-    return Object.hasOwn(store, doSubmit);
+    return (
+        Object.hasOwn(store, doSubmit) &&
+        (store as WithSubmit<unknown>)[doSubmit] !== undefined
+    );
 };
 
 export const hasError = (store: unknown): store is WithError => {
@@ -101,7 +133,10 @@ export const hasError = (store: unknown): store is WithError => {
         return false;
     }
 
-    return Object.hasOwn(store, getError);
+    return (
+        Object.hasOwn(store, getError) &&
+        (store as WithError)[getError] !== undefined
+    );
 };
 
 export const hasIgnore = (store: unknown): store is Ignored => {
@@ -109,7 +144,10 @@ export const hasIgnore = (store: unknown): store is Ignored => {
         return false;
     }
 
-    return Object.hasOwn(store, informalIgnore);
+    return (
+        Object.hasOwn(store, informalIgnore) &&
+        (store as Ignored)[informalIgnore] !== undefined
+    );
 };
 
 export const zodToValidationError = (
