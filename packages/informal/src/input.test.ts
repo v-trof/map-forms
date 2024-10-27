@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { currentSignle, validSingle } from './access';
 import { WithCurrentValue, WithApproval, WithValidValue } from './domain';
-import { input } from './input';
+import { input, notEmpty, options } from './input';
 
 test('Types', () => {
     const test: WithValidValue<string> &
@@ -97,4 +97,88 @@ test('Password validation - valid passwords', () => {
         expect(currentSignle(inputPassword)).toBe(password);
         expect(validSingle(inputPassword, 'fallback')).toBe('fallback');
     });
+});
+
+test('supports number input (counter style)', () => {
+    const counter = input(notEmpty(z.number().int().min(0).max(1000), 0));
+
+    counter.value = -1;
+    expect(counter.value).toBe(-1);
+    expect(validSingle(counter, 100)).toBe(100);
+
+    counter.value = 0;
+    expect(counter.value).toBe(0);
+    expect(validSingle(counter, 100)).toBe(0);
+
+    counter.value = 500;
+    expect(counter.value).toBe(500);
+    expect(validSingle(counter, 100)).toBe(500);
+
+    // @ts-expect-error the whole point of defined is to have a default value in component / current
+    counter.value = undefined;
+});
+
+test('supports select with default value', () => {
+    const select = input(
+        z.union([z.literal('red'), z.literal('green'), z.literal(15)])
+    );
+
+    select.value = 'red';
+    expect(select.value).toBe('red');
+
+    select.value = 'green';
+    expect(select.value).toBe('green');
+
+    select.value = 15;
+    expect(select.value).toBe(15);
+
+    // @ts-expect-error values outside of the union are not allowed
+    select.value = 'blue';
+});
+
+test('options can be used for convinience', () => {
+    const select = input(options('red', 'green', 15, 'i am cool'));
+
+    select.value = 'red';
+    expect(select.value).toBe('red');
+
+    select.value = 'green';
+    expect(select.value).toBe('green');
+
+    select.value = 15;
+    expect(select.value).toBe(15);
+
+    // @ts-expect-error values outside of the union are not allowed
+    select.value = 'blue';
+});
+
+test('select supprots defined', () => {
+    const select = input(
+        notEmpty(options('red', 'green', 15, 'i am cool'), 'red')
+    );
+
+    expect(select.value).toBe('red');
+
+    select.value = 'green';
+    expect(select.value).toBe('green');
+
+    select.value = 15;
+    expect(select.value).toBe(15);
+
+    // @ts-expect-error values outside of the union are not allowed
+    select.value = 'blue';
+
+    // @ts-expect-error undefined is not allowed
+    select.value = undefined;
+});
+
+test('defined cannot be invalid type', () => {
+    // @ts-expect-error invalid type
+    input(notEmpty(z.number(), 'five'));
+
+    // @ts-expect-error invalid type
+    input(notEmpty(z.string(), 5));
+
+    // @ts-expect-error invalid type
+    input(notEmpty(options('red', 'green', 15, 'i am cool'), 'blue'));
 });
