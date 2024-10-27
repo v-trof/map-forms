@@ -10,7 +10,7 @@ import {
 } from './domain';
 
 export type Input<Z extends z.ZodTypeAny> = {
-    value: z.input<Z> | undefined;
+    value: z.input<Z>;
     approved: boolean;
     [setApproved]: (value: boolean) => void;
     [getCurrentValue]: () => z.input<Z> | undefined;
@@ -21,7 +21,7 @@ export const input = <Schema extends z.ZodTypeAny>(
     schema: Schema
 ): Input<Schema> => {
     const store: Input<Schema> = observable({
-        value: undefined,
+        value: schema.safeParse(undefined).data,
         approved: false,
         [setApproved]: action((value: boolean) => {
             store.approved = value;

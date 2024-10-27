@@ -5,12 +5,13 @@ import { alt, removable } from './combine';
 import { isValidationError, zodToValidationError } from './domain';
 import { input } from './input';
 import { submit } from './submit';
+import { v } from './validators';
 
 test('alt should validate current value', () => {
     const store = alt(
         {
-            a: input(z.string().min(1)),
-            b: input(z.string().min(1)),
+            a: input(v.string().min(1)),
+            b: input(v.string().min(1)),
         },
         'a'
     );
@@ -26,9 +27,9 @@ test('alt should validate current value', () => {
 test('alt should not validate other options', () => {
     const store = alt(
         {
-            a: input(z.string().min(1)),
-            b: input(z.string().min(1)),
-            c: input(z.string().min(1)),
+            a: input(v.string().min(1)),
+            b: input(v.string().min(1)),
+            c: input(v.string().min(1)),
         },
         'a'
     );
@@ -40,8 +41,8 @@ test('alt should not validate other options', () => {
 test('alt should throw if current key is invalid', () => {
     const store = alt(
         {
-            a: input(z.string().min(1)),
-            b: input(z.string().min(1)),
+            a: input(v.string().min(1)),
+            b: input(v.string().min(1)),
         },
         'a'
     );
@@ -53,8 +54,8 @@ test('alt should throw if current key is invalid', () => {
 test('alt errors should not prevent submit from working', () => {
     const store = alt(
         {
-            a: input(z.string().min(1)),
-            b: input(z.string().min(1)),
+            a: input(v.string().min(1)),
+            b: input(v.string().min(1)),
         },
         'a'
     );
@@ -65,12 +66,12 @@ test('alt errors should not prevent submit from working', () => {
     const bigStore = alt(
         {
             obj: {
-                a: input(z.string().min(1)),
+                a: input(v.string().min(1)),
                 deep: {
-                    b: input(z.string().min(1)),
+                    b: input(v.string().min(1)),
                 },
             },
-            single: input(z.string().min(1)),
+            single: input(v.string().min(1)),
         },
         'obj'
     );
@@ -82,12 +83,12 @@ test('alt supports deep values', () => {
     const store = alt(
         {
             obj: {
-                a: input(z.string().min(1)),
+                a: input(v.string().min(1)),
                 deep: {
-                    b: input(z.string().min(1)),
+                    b: input(v.string().min(1)),
                 },
             },
-            single: input(z.string().min(1)),
+            single: input(v.string().min(1)),
         },
         'obj'
     );
@@ -111,12 +112,12 @@ test('supports current value', () => {
     const store = alt(
         {
             obj: {
-                a: input(z.string().min(1)),
+                a: input(v.string().min(1)),
                 deep: {
-                    b: input(z.string().min(1)),
+                    b: input(v.string().min(1)),
                 },
             },
-            single: input(z.string().min(1)),
+            single: input(v.string().min(1)),
         },
         'obj'
     );
@@ -138,8 +139,8 @@ test('supports current value', () => {
 test('only current options should be approved by submit', () => {
     const store = alt(
         {
-            a: input(z.string().min(1)),
-            b: input(z.string().min(1)),
+            a: input(v.string().min(1)),
+            b: input(v.string().min(1)),
         },
         'a'
     );
@@ -166,9 +167,9 @@ test('only current options should be approved by submit', () => {
 
 test('removable is considered undefined when removed', () => {
     const store = {
-        name: input(z.string().min(1)),
+        name: input(v.string().min(1)),
         deep: {
-            description: removable(input(z.string().min(1))),
+            description: removable(input(v.string().min(1))),
         },
     };
 
@@ -188,17 +189,17 @@ test('removable is considered undefined when removed', () => {
 
 test('during submit alt returns a report of all errors', () => {
     const bigStore = {
-        field: input(z.string().min(1)),
+        field: input(v.string().min(1)),
         deeper: alt(
             {
                 obj: {
-                    a: input(z.string().min(1)),
-                    removeMe: removable(input(z.string().min(1))),
+                    a: input(v.string().min(1)),
+                    removeMe: removable(input(v.string().min(1))),
                     deep: {
-                        b: input(z.string().min(1)),
+                        b: input(v.string().min(1)),
                     },
                 },
-                single: input(z.string().min(1)),
+                single: input(v.string().min(1)),
             },
             'obj'
         ),
@@ -213,7 +214,7 @@ test('during submit alt returns a report of all errors', () => {
     const report = (result as any).params;
 
     const requiredError = zodToValidationError(
-        z.string().min(1).safeParse(undefined).error
+        v.string().min(1).safeParse(undefined).error
     );
 
     expect(report).toEqual({

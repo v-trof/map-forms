@@ -1,18 +1,20 @@
 import { z } from 'zod';
 
-import { currentSignle, validSingle } from './access';
+import { current, currentSignle, valid, validSingle } from './access';
 import { WithCurrentValue, WithApproval, WithValidValue } from './domain';
 import { input } from './input';
+import { informalString } from './validators';
 
 test('Types', () => {
     const test: WithValidValue<string> &
         WithApproval &
-        WithCurrentValue<string | undefined> = input(z.string());
+        WithCurrentValue<string | undefined> = input(informalString());
     expect(test).toBeDefined();
 });
 
 test('Supports writing value into an input', () => {
-    const login = input(z.string());
+    // z.union([z.string(), z.undefined()]).pipe(z.string()) -- this feels like garbage to trick typescript
+    const login = input(informalString());
 
     login.value = 'v-trof';
 
@@ -97,4 +99,42 @@ test('Password validation - valid passwords', () => {
         expect(currentSignle(inputPassword)).toBe(password);
         expect(validSingle(inputPassword, 'fallback')).toBe('fallback');
     });
+});
+
+test('allows for number input (input style)', () => {
+    const num = input(
+        z
+            .string()
+            .transform((val, ctx) => {
+                const parsed = parseInt(val);
+                if (isNaN(parsed)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Not a number',
+                    });
+
+                    // This is a special symbol you can use to
+                    // return early from the transform function.
+                    // It has type `never` so it does not affect the
+                    // inferred return type.
+                    return z.NEVER;
+                }
+                return parsed;
+            })
+            .pipe(z.number().min(5))
+    );
+
+    num.value = '123';
+
+    expect(valid(num)).toBe(123);
+    expect(current(num)).toBe('123');
+});
+
+test('allows for number input (coutner style)', () => {
+    const num = input(z.number().min(5).default(0));
+
+    num.value = 123;
+
+    expect(valid(num)).toBe(123);
+    expect(current(num)).toBe(123);
 });

@@ -5,10 +5,11 @@ import { error, isValidationError } from './domain';
 import { input } from './input';
 import { submit } from './submit';
 import { validation } from './validation';
+import { informalNumber, informalString } from './validators';
 
 test('submit can submit a an input', () => {
     const form = {
-        name: input(z.string()),
+        name: input(informalString()),
     };
     form.name.value = 'hello';
     const result = submit(form.name);
@@ -17,7 +18,7 @@ test('submit can submit a an input', () => {
 
 test('submit fails for invalid input', () => {
     const form = {
-        name: input(z.string()),
+        name: input(informalString()),
     };
     form.name.value = 'hello';
     form.name.value = undefined;
@@ -27,12 +28,12 @@ test('submit fails for invalid input', () => {
 
 test('submit sets approved on all inputs', () => {
     const form = {
-        name: input(z.string()),
+        name: input(informalString()),
         age: input(z.number()),
         address: {
-            street: input(z.string()),
-            city: input(z.string()),
-            state: input(z.string()),
+            street: input(informalString()),
+            city: input(informalString()),
+            state: input(informalString()),
         },
     };
     form.name.value = 'hello';
@@ -47,12 +48,12 @@ test('submit sets approved on all inputs', () => {
 
 test('sbumit returns valid value for entire form', () => {
     const form = {
-        name: input(z.string()),
+        name: input(informalString()),
         age: input(z.number()),
         address: {
-            street: input(z.string()),
-            city: input(z.string()),
-            state: input(z.string()),
+            street: input(informalString()),
+            city: input(informalString()),
+            state: input(informalString()),
         },
     };
     form.name.value = 'hello';
@@ -74,12 +75,12 @@ test('sbumit returns valid value for entire form', () => {
 
 test('submit validates entire form', () => {
     const form = {
-        name: input(z.string()),
+        name: input(informalString()),
         age: input(z.number()),
         address: {
-            street: input(z.string()),
-            city: input(z.string()),
-            state: input(z.string()),
+            street: input(informalString()),
+            city: input(informalString()),
+            state: input(informalString()),
         },
     };
     form.name.value = 'hello';
@@ -93,12 +94,12 @@ test('submit validates entire form', () => {
 
 test('submit provides a report to debug invalid forms', () => {
     const form = {
-        name: input(z.string()),
+        name: input(informalString()),
         age: input(z.number()),
         address: {
-            street: input(z.string()),
-            city: input(z.string()),
-            state: input(z.string()),
+            street: input(informalString()),
+            city: input(informalString()),
+            state: input(informalString()),
         },
     };
     form.name.value = 'hello';
@@ -121,12 +122,12 @@ test('submit provides a report to debug invalid forms', () => {
 
 test('submit approves all inputs', () => {
     const form = {
-        name: input(z.string()),
-        age: input(z.number()),
+        name: input(informalString()),
+        age: input(informalNumber()),
         address: {
-            street: input(z.string()),
-            city: input(z.string()),
-            state: input(z.string()),
+            street: input(informalString()),
+            city: input(informalString()),
+            state: input(informalString()),
         },
     };
     form.name.value = 'hello';
@@ -144,8 +145,8 @@ test('submit approves all inputs', () => {
 
 test('submit checks validation as well as inputs', () => {
     const form = {
-        password: input(z.string().min(8).max(40)),
-        repeatPassword: input(z.string().min(8).max(40)),
+        password: input(informalString().min(8).max(40)),
+        repeatPassword: input(informalString().min(8).max(40)),
         notSame: validation(() => {
             if (valid(form.password) !== valid(form.repeatPassword)) {
                 return error('Passwords do not match');
