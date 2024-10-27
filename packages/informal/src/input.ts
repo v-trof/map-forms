@@ -2,10 +2,10 @@ import { action, observable } from 'mobx';
 import { Primitive, z } from 'zod';
 
 import {
+    doSubmit,
     getCurrentValue,
     getValidValue,
     isValidationError,
-    setApproved,
     setCurrentValue,
     ValidationError,
     zodToValidationError,
@@ -21,10 +21,11 @@ export type Value<Z extends z.ZodTypeAny> = Z extends ZodNotEmpty
 export type Input<Z extends z.ZodTypeAny> = {
     value: Value<Z>;
     approved: boolean;
-    [setApproved]: (value: boolean) => void;
+    backendError: ValidationError | undefined;
     [getCurrentValue]: () => Value<Z>;
     [setCurrentValue]: (value: Value<Z>) => void;
     [getValidValue]: () => z.infer<Z> | ValidationError;
+    [doSubmit]: () => z.infer<Z> | ValidationError;
 };
 
 export const notEmpty = <
@@ -39,6 +40,7 @@ export const notEmpty = <
     return changed;
 };
 
+// safeParseAsync is not supported because backend validation should be performed with debounce / on submit
 export const validateAgainstZod = <Schema extends z.ZodTypeAny>(
     schema: Schema,
     value: unknown,
@@ -64,9 +66,7 @@ export const input = <Schema extends z.ZodTypeAny>(
     const store: Input<Schema> = observable({
         value: initialValue,
         approved: false,
-        [setApproved]: action((value: boolean) => {
-            store.approved = value;
-        }),
+        backendError: undefined,
         [getCurrentValue]: () => {
             reportApprovalStatus(store.approved);
             return store.value;
@@ -74,8 +74,17 @@ export const input = <Schema extends z.ZodTypeAny>(
         [setCurrentValue]: action((value: Value<Schema>) => {
             store.value = value;
         }),
-        [getValidValue]: () =>
-            validateAgainstZod(schema, store.value, store.approved),
+        [getValidValue]: () => {
+            if (store.backendError) {
+                return store.backendError;
+            }
+            return validateAgainstZod(schema, store.value, store.approved);
+        },
+        [doSubmit]: () => {
+            store.approved = true;
+            store.backendError = undefined;
+            return store[getValidValue]();
+        },
     });
 
     return store;
@@ -95,10 +104,11 @@ export const options = <T extends [Primitive, ...Array<Primitive>]>(
 export type ParsedInput<State, Z extends z.ZodTypeAny> = {
     state: State;
     approved: boolean;
-    [setApproved]: (value: boolean) => void;
+    backendError: ValidationError | undefined;
     [getCurrentValue]: () => Value<Z> | ValidationError;
     [setCurrentValue]: (value: Value<Z>) => void;
     [getValidValue]: () => z.infer<Z> | ValidationError;
+    [doSubmit]: () => z.infer<Z> | ValidationError;
 };
 
 export const parsedInput = <State, Schema extends z.ZodTypeAny>(
@@ -115,9 +125,7 @@ export const parsedInput = <State, Schema extends z.ZodTypeAny>(
     const store: ParsedInput<State, Schema> = observable({
         state,
         approved: false,
-        [setApproved]: action((value: boolean) => {
-            store.approved = value;
-        }),
+        backendError: undefined,
         [getCurrentValue]: () => {
             reportApprovalStatus(store.approved);
             const result = stateToCurrentValue(store.state);
@@ -135,8 +143,16 @@ export const parsedInput = <State, Schema extends z.ZodTypeAny>(
             if (isValidationError(currentValue)) {
                 return currentValue;
             }
+            if (store.backendError) {
+                return store.backendError;
+            }
 
             return validateAgainstZod(schema, currentValue, store.approved);
+        },
+        [doSubmit]: () => {
+            store.approved = true;
+            store.backendError = undefined;
+            return store[getValidValue]();
         },
     });
 

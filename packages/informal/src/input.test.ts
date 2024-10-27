@@ -257,3 +257,28 @@ test('can make numeric input', () => {
     expect(current(prefferedFloor, 10)).toBe(10);
     expect(valid(prefferedFloor, 10)).toBe(10);
 });
+
+test('it supports async validation', async () => {
+    const usernameSchema = z
+        .string()
+        .min(3)
+        .max(20)
+        .refine(async (value) => {
+            await new Promise((resolve) =>
+                setTimeout(() => resolve(value !== 'admin'), 10)
+            );
+        });
+
+    const username = input(usernameSchema);
+    expect(current(username)).toBe(undefined);
+    expect(() => valid(username)).toThrowError();
+
+    username.value = 'dude';
+
+    expect(current(username)).toBe('dude');
+    try {
+        valid(username);
+    } catch (e) {
+        console.log(e);
+    }
+});

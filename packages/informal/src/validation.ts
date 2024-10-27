@@ -4,7 +4,6 @@ import {
     doSubmit,
     getError,
     isValidationError,
-    setApproved,
     ValidationError,
     WithApproval,
     WithError,
@@ -75,20 +74,17 @@ export type ValidationBackend = WithApproval &
 
 export const ValidationBackend = (): ValidationBackend => {
     const store = observable({
-        error: undefined as ValidationError | undefined,
+        backendError: undefined as ValidationError | undefined,
         approved: false,
-        [setApproved]: action((value: boolean) => {
-            store.approved = value;
-        }),
         setError: action((backendError: ValidationError | undefined) => {
-            store.error = backendError;
+            store.backendError = backendError;
             store.approved = true;
         }),
         [doSubmit]: () => {
-            store.error = undefined;
+            store.backendError = undefined;
             store.approved = false;
         },
-        [getError]: () => store.error,
+        [getError]: () => store.backendError,
     });
 
     return store;

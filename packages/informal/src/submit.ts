@@ -5,10 +5,8 @@ import {
     getValidValue,
     getError,
     isValidationError,
-    setApproved,
     ValidationError,
     error,
-    hasApproval,
     hasValidValue,
     WithCurrentValue,
     Ignored,
@@ -60,10 +58,6 @@ export const submitSlice = (currentSlice: unknown) => {
 
     if (hasSubmit(currentSlice)) {
         return currentSlice[doSubmit]();
-    }
-
-    if (hasApproval(currentSlice)) {
-        currentSlice[setApproved](true);
     }
 
     if (hasValidValue(currentSlice)) {

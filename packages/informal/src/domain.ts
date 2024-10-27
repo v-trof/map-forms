@@ -4,7 +4,6 @@ export const getValidValue = Symbol('@informal/getValidValue');
 export const getCurrentValue = Symbol('@informal/getCurrentValue');
 export const setCurrentValue = Symbol('@informal/setCurrentValue');
 export const getError = Symbol('@informal/getError');
-export const setApproved = Symbol('@informal/setApproved');
 export const doSubmit = Symbol('@informal/doSubmit');
 export const informalIgnore = Symbol('@informal/ignore');
 export const addItem = Symbol('@informal/addItem');
@@ -46,7 +45,6 @@ export interface WithValidValue<Value> {
 
 export interface WithApproval {
     approved: boolean;
-    [setApproved]: (approved: boolean) => void;
 }
 
 export interface WithSubmit<Value> {
@@ -105,17 +103,6 @@ export const hasValidValue = (
     return (
         Object.hasOwn(store, getValidValue) &&
         (store as WithValidValue<unknown>)[getValidValue] !== undefined
-    );
-};
-
-export const hasApproval = (store: unknown): store is WithApproval => {
-    if (!store || typeof store !== 'object') {
-        return false;
-    }
-
-    return (
-        Object.hasOwn(store, setApproved) &&
-        (store as WithApproval)[setApproved] !== undefined
     );
 };
 

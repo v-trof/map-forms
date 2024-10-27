@@ -65,6 +65,8 @@ export const transformSubmitValue = <Store extends object, NewValue>(
     if (hasSubmit(store)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         oldSubmit = store[doSubmit] as any;
+        // @ts-expect-error we force replace it as questionable as it is
+        delete store[doSubmit];
     }
 
     const newStore = extendObservable(store, {

@@ -2,9 +2,9 @@ import { extendObservable, observable } from 'mobx';
 import { z } from 'zod';
 
 import {
+    doSubmit,
     getCurrentValue,
     getValidValue,
-    setApproved,
     setCurrentValue,
     ValidationError,
 } from '../domain';
@@ -19,10 +19,11 @@ export type Suggest<Z extends z.ZodTypeAny> = {
     suggest: SuggestManager<z.input<Z> | undefined>;
     onClear: () => void;
     onChange: (newValue: z.input<Z> | undefined) => void;
-    [setApproved]: (value: boolean) => void;
+    backendError: ValidationError | undefined;
     [getCurrentValue]: () => z.input<Z> | undefined;
     [setCurrentValue]: (value: z.input<Z> | undefined) => void;
     [getValidValue]: () => z.infer<Z> | ValidationError;
+    [doSubmit]: () => z.infer<Z> | ValidationError;
 };
 
 /**
@@ -42,32 +43,37 @@ export const suggest = <Schema extends z.ZodTypeAny>(
         provider
     );
 
-    const field = extendObservable(fieldState, {
+    const store = extendObservable(fieldState, {
         suggest: suggestManager,
+        backendError: undefined as ValidationError | undefined,
         onClear: () => {
-            field.approved = false;
+            store.approved = false;
             suggestManager.setQueryFromValue(undefined);
-            field.value = undefined;
+            store.value = undefined;
         },
         onChange: (newValue: z.input<Schema> | undefined) => {
-            field[setCurrentValue](newValue);
-        },
-        [setApproved]: (value: boolean) => {
-            field.approved = value;
+            store[setCurrentValue](newValue);
         },
         [getCurrentValue]: () => {
-            reportApprovalStatus(field.approved);
-            return field.value;
+            reportApprovalStatus(store.approved);
+            return store.value;
         },
         [setCurrentValue]: (newValue: z.input<Schema> | undefined) => {
             suggestManager.setQueryFromValue(newValue);
-            field.value = newValue;
-            field.approved = true;
+            store.value = newValue;
+            store.approved = true;
         },
         [getValidValue]: () => {
-            return validateAgainstZod(schema, field.value, field.approved);
+            if (store.backendError) {
+                return store.backendError;
+            }
+            return validateAgainstZod(schema, store.value, store.approved);
+        },
+        [doSubmit]: () => {
+            store.backendError = undefined;
+            return store[getValidValue]();
         },
     });
 
-    return field;
+    return store;
 };
