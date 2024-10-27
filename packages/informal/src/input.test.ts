@@ -1,8 +1,13 @@
 import { z } from 'zod';
 
-import { currentSignle, validSingle } from './access';
-import { WithCurrentValue, WithApproval, WithValidValue } from './domain';
-import { input, notEmpty, options } from './input';
+import { current, currentSignle, valid, validSingle } from './access';
+import {
+    WithCurrentValue,
+    WithApproval,
+    WithValidValue,
+    error,
+} from './domain';
+import { input, notEmpty, options, ParsedInput, parsedInput } from './input';
 
 test('Types', () => {
     const test: WithValidValue<string> &
@@ -181,4 +186,63 @@ test('defined cannot be invalid type', () => {
 
     // @ts-expect-error invalid type
     input(notEmpty(options('red', 'green', 15, 'i am cool'), 'blue'));
+});
+
+const numeric = <Z extends z.ZodNumber | z.ZodOptional<z.ZodNumber>>(
+    schema: Z
+): ParsedInput<{ stringValue: string }, Z> =>
+    parsedInput(
+        { stringValue: '' },
+        (value) => ({ stringValue: String(value) }),
+        (state) => {
+            if (state.stringValue === '') {
+                return undefined;
+            }
+            const value = parseFloat(state.stringValue);
+            if (Number.isNaN(value)) {
+                return error(`Cannot parse number from ${state.stringValue}`);
+            }
+            return value;
+        },
+        schema
+    ) as unknown as ParsedInput<{ stringValue: string }, Z>;
+// as unknown required you to understand zod types which is a shame
+
+test('can make numeric input', () => {
+    const age = numeric(z.number().int().min(18));
+
+    age.state.stringValue = '5';
+    expect(current(age)).toBe(5);
+    expect(() => valid(age)).toThrowError();
+
+    age.state.stringValue = '0';
+    expect(current(age)).toBe(0);
+    expect(() => valid(age)).toThrowError();
+
+    age.state.stringValue = '';
+    expect(current(age)).toBe(undefined);
+    expect(() => valid(age)).toThrowError();
+
+    age.state.stringValue = '30';
+    expect(current(age)).toBe(30);
+    expect(valid(age)).toBe(30);
+
+    age.state.stringValue = 'old enough';
+    expect(() => current(age)).toThrowError();
+    expect(() => valid(age)).toThrowError();
+
+    const prefferedFloor = numeric(z.number().int().min(1).max(15).optional());
+    prefferedFloor.state.stringValue = '5';
+    expect(current(prefferedFloor)).toBe(5);
+    expect(valid(prefferedFloor)).toBe(5);
+
+    prefferedFloor.state.stringValue = '';
+    expect(current(prefferedFloor)).toBe(undefined);
+    expect(valid(prefferedFloor)).toBe(undefined);
+
+    prefferedFloor.state.stringValue = 'ground';
+    expect(() => current(prefferedFloor)).toThrowError();
+    expect(() => valid(prefferedFloor)).toThrowError();
+    expect(current(prefferedFloor, 10)).toBe(10);
+    expect(valid(prefferedFloor, 10)).toBe(10);
 });

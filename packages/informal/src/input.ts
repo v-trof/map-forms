@@ -4,6 +4,7 @@ import { Primitive, z } from 'zod';
 import {
     getCurrentValue,
     getValidValue,
+    isValidationError,
     setApproved,
     setCurrentValue,
     ValidationError,
@@ -77,4 +78,56 @@ export const options = <T extends [Primitive, ...Array<Primitive>]>(
 ): Options<T> => {
     // @ts-expect-error ts can't infer this yet
     return z.union(options.map((x) => z.literal(x)));
+};
+
+export type ParsedInput<State, Z extends z.ZodTypeAny> = {
+    state: State;
+    approved: boolean;
+    [setApproved]: (value: boolean) => void;
+    [getCurrentValue]: () => Value<Z> | ValidationError;
+    [setCurrentValue]: (value: Value<Z>) => void;
+    [getValidValue]: () => z.infer<Z> | ValidationError;
+};
+
+export const parsedInput = <State, Schema extends z.ZodTypeAny>(
+    state: State,
+    currentValueToState: (value: Value<Schema>) => State,
+    stateToCurrentValue: (state: State) => Value<Schema> | ValidationError,
+    schema: Schema
+): ParsedInput<State, Schema> => {
+    const initialValue: Value<Schema> =
+        informalDefined in schema
+            ? (schema[informalDefined] as unknown as Value<Schema>)
+            : (undefined as unknown as Value<Schema>);
+
+    const store: ParsedInput<State, Schema> = observable({
+        state,
+        approved: false,
+        [setApproved]: action((value: boolean) => {
+            store.approved = value;
+        }),
+        [getCurrentValue]: () => stateToCurrentValue(store.state),
+        [setCurrentValue]: action((value: Value<Schema>) => {
+            store.state = currentValueToState(value);
+        }),
+        [getValidValue]: () => {
+            const currentValue = stateToCurrentValue(store.state);
+            if (isValidationError(currentValue)) {
+                return currentValue;
+            }
+
+            const result = schema.safeParse(currentValue);
+            if (result.success) {
+                return result.data;
+            }
+
+            return zodToValidationError(result.error);
+        },
+    });
+
+    if (typeof initialValue !== undefined) {
+        store[setCurrentValue](initialValue);
+    }
+
+    return store;
 };
