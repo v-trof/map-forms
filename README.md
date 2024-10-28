@@ -1,60 +1,54 @@
-# Call this shit human interaction lol
-Key entities
-- parser
-    - parse => value() or error()
-    - hydrate => state()
-- validator value => valid() or error()
+key idea: form is a part of state, do not separate it out at all. we just place fields wherever we need them and call "submit" that searches for fields recursively. 
 
-- input
-- errorBox <- still hope to find a better name for this one
-
-- input has approved flag
-- validators in (all) return errors in order they were called
-- have a fancy use case -> build your own combinator / error object / reuse validators
-- input types
+we can tell apart a field from non-field because of unique symbols 
+- getCurrentValue
+- getValidValue
+- doSubmit
 
 ---
 
-input<value> // required, output values same as initial save for undefined
-input.optional<value>
-input.parsed<state, value>
-input.parsed.optional<state, value> // required is the only type changing validator anyway
+please take a look at packages/examples and packages/infromal/src/input test ts and submit test ts to see example usage
 
-// allow validate state of a input.parsed
+----
 
+anatomy of input
+- getValidValue -- returns value you can actually submit or validation error
+- "approved" -- a way to tell if we expect that the user finished editing input, thus ready to see errors (aimilar to touched in most form libraries)
+- "backendErorr" -- validation error we couldn't compute on the client, that we expect, but do no require user to address before clicking sumvit (since backed state it came from couls have changed)
+- submit -- does chores like setting approved, clearing old backend errors and returns getValidValue
+- getCurrentValue -- returns value of the same type of getValidVlaue but likely not passing certain conatraints: i.e. minimum length of username is 4 characters but we want to update profile preview as the user is typing, so we use current value for it, also useful for saving drafts
+- state (parsed inputs only) -- of your current value that makes sense for the rest of the app and method of ently are super different we have "parsed" to tell them apart: i.e. most numer inputs have to be steign inputs under the hood to work peoperly in firefox
+- setCurrentValue -- used by autofill to provide intial / persisted values. in case of parsed input also hydrates state 
 
-allow building custom error containers and inputs by providing relevant symbols
----
+----
 
-// I'd like to avoid overrides here i guess and go for sparate names
-// reader are 100% more complex, so leave nice names for them
-ok now what about reading the state?
-- state() // raw
-    | ^
-    v |
-- value() // parsed
-    |
-    v
-- valid() // all possible validators passed including submit & state & value, computed
-    |
-    v
-- submit() // parsed + valid, approve evertything on call
+current, valid, submit from access.ts just search recusvely for this symbols above and call methods associated with them
 
-.setValue(newValue, {approve})
-.setState(newState, {approve})
-.setErorr(state | value | value | submit, error)
+submit calls for just one method, in the following order 
+- doSubmit
+- getValidValue
+- getCurrentValue
 
-submit(state)
+valid only calls for
+- getValidValue
+- getCurrentValue
 
----
+current calls for 
+- getCurrentValue
+- getValidValue for rare cases where current value was not suppoeted in cuatom input
 
-on submit errors: basically an error belonging to a submitted value (which is always approved)
+--- 
 
-so a beatiful design would be an input with a ladder of values
+there are a few extra structures to build complex forms 
 
-state
-parsed
-submitted
+alt allows you to have multiple braches of the form, uae just one, 
+but persist input stte in unused ones 
 
+removalble is sugar for alt input | undefined 
 
-and validators corresponding to each of them
+transformSubmitValue allows you to change how valid value looks suring aubmit but leaves the rest of the form intact 
+
+inputArray is just an array of inputs / forms compatible with autofill
+
+inputRecord is an object compatible with autofill
+
